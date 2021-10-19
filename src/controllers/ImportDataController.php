@@ -1,4 +1,5 @@
 <?php
+
 /**
  * HubSpot Ecommerce Bridge plugin for Craft CMS 3.x
  *
@@ -8,9 +9,9 @@
  * @copyright Copyright (c) 2021 Daniel Siemers
  */
 
-namespace batchhubspotecommercebridge\hubspotecommercebridge\controllers;
+namespace batchnz\hubspotecommercebridge\controllers;
 
-use batchhubspotecommercebridge\hubspotecommercebridge\HubspotEcommerceBridge;
+use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\web\Controller;
@@ -46,7 +47,7 @@ class ImportDataController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = ['index', 'do-something'];
+    protected $allowAnonymous = true;
 
     // Public Methods
     // =========================================================================
