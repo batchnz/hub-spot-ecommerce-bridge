@@ -1,5 +1,5 @@
 {
-    "name": "batchhubspotecommercebridge/hub-spot-ecommerce-bridge",
+    "name": "batchnz/hub-spot-ecommerce-bridge",
     "description": "Uses the HubSpot Ecommerce Bridge to sync data from Craft Commerce",
     "type": "craft-plugin",
     "version": "1.0.0",
@@ -11,8 +11,8 @@
         "hubspot ecommerce bridge"
     ],
     "support": {
-        "docs": "https://github.com/dancarter888/hub-spot-ecommerce-bridge/blob/master/README.md",
-        "issues": "https://github.com/dancarter888/hub-spot-ecommerce-bridge/issues"
+        "docs": "https://github.com/batchnz/hub-spot-ecommerce-bridge/blob/master/README.md",
+        "issues": "https://github.com/batchnz/hub-spot-ecommerce-bridge/issues"
     },
     "license": "MIT",
     "authors": [
@@ -26,7 +26,7 @@
     },
     "autoload": {
         "psr-4": {
-          "batchhubspotecommercebridge\\hubspotecommercebridge\\": "src/"
+            "batchnz\\hubspotecommercebridge\\": "src/"
         }
     },
     "extra": {
@@ -34,8 +34,8 @@
         "handle": "hub-spot-ecommerce-bridge",
         "developer": "Daniel Siemers",
         "developerUrl": "https://www.batch.nz/",
-        "documentationUrl": "https://github.com/dancarter888/hub-spot-ecommerce-bridge/blob/master/README.md",
-        "changelogUrl": "https://raw.githubusercontent.com/dancarter888/hub-spot-ecommerce-bridge/master/CHANGELOG.md",
-        "class": "batchhubspotecommercebridge\\hubspotecommercebridge\\HubspotEcommerceBridge"
+        "documentationUrl": "https://github.com/batchnz/hub-spot-ecommerce-bridge/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/batchnz/hub-spot-ecommerce-bridge/master/CHANGELOG.md",
+        "class": "batchnz\\hubspotecommercebridge\\Plugin"
     }
 }
