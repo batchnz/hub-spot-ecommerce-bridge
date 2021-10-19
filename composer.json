@@ -1,0 +1,41 @@
+{
+    "name": "batchhubspotecommercebridge/hub-spot-ecommerce-bridge",
+    "description": "Uses the HubSpot Ecommerce Bridge to sync data from Craft Commerce",
+    "type": "craft-plugin",
+    "version": "1.0.0",
+    "keywords": [
+        "craft",
+        "cms",
+        "craftcms",
+        "craft-plugin",
+        "hubspot ecommerce bridge"
+    ],
+    "support": {
+        "docs": "https://github.com/dancarter888/hub-spot-ecommerce-bridge/blob/master/README.md",
+        "issues": "https://github.com/dancarter888/hub-spot-ecommerce-bridge/issues"
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Daniel Siemers",
+            "homepage": "https://www.batch.nz/"
+        }
+    ],
+    "require": {
+        "craftcms/cms": "^3.0.0"
+    },
+    "autoload": {
+        "psr-4": {
+          "batchhubspotecommercebridge\\hubspotecommercebridge\\": "src/"
+        }
+    },
+    "extra": {
+        "name": "HubSpot Ecommerce Bridge",
+        "handle": "hub-spot-ecommerce-bridge",
+        "developer": "Daniel Siemers",
+        "developerUrl": "https://www.batch.nz/",
+        "documentationUrl": "https://github.com/dancarter888/hub-spot-ecommerce-bridge/blob/master/README.md",
+        "changelogUrl": "https://raw.githubusercontent.com/dancarter888/hub-spot-ecommerce-bridge/master/CHANGELOG.md",
+        "class": "batchhubspotecommercebridge\\hubspotecommercebridge\\HubspotEcommerceBridge"
+    }
+}
