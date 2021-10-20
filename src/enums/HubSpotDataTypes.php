@@ -9,7 +9,7 @@ namespace batchnz\hubspotecommercebridge\enums;
  *
  * Defines the allowed HubSpot data types
  */
-abstract class HubSpotTypes
+abstract class HubSpotDataTypes
 {
     public const STRING = "STRING";
     public const NUMBER = "NUMBER";
