@@ -11,7 +11,8 @@
 
 namespace batchnz\hubspotecommercebridge\controllers;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotTypes;
+use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
+use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
 use craft\web\Controller;
@@ -62,7 +63,7 @@ class SettingsController extends Controller
      * @return Response
      * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
-    public function actionCreateStore()
+    public function actionCreateStore(): Response
     {
         $store = [
           "id" => Plugin::STORE_ID,
@@ -77,10 +78,8 @@ class SettingsController extends Controller
     }
 
     /**
-    * This will create or update the settings of the store mapping
-    * between the craft commerce store and hubspots ecommerce store.
-    *
-    * @return mixed
+    * Uses the HubSpot SDK to create of update the settings related to the data mappings
+    * @return Response
     */
     public function actionUpsertSettings(): Response
     {
@@ -88,102 +87,55 @@ class SettingsController extends Controller
 
         $settings = $this->createSettings();
 
-
         $upserted = $hubspot->ecommerceBridge()->upsertSettings($settings);
 
         return $this->asJson($upserted);
     }
 
+
+    /**
+     * Creates the mappings settings for Craft Coomerce objects to HubSpot objects
+     * @return array
+     */
     public function createSettings() : array
     {
-        $settings = [
+        $mappingService = Plugin::getInstance()->getMapping();
+
+        return ([
             "enabled" => true,
             "webhookUri" => Plugin::WEBHOOK_URI,
             "mappings" => [
-                "CONTACT" => [
-                    "properties" => [
-                        [
-                            "externalPropertyName" => "userId",
-                            "hubspotPropertyName" => "hs_object_id",
-                            "dataType" => HubSpotTypes::STRING,
-                        ],
-                        [
-                            "externalPropertyName" => "email",
-                            "hubspotPropertyName" => "email",
-                            "dataType" => HubSpotTypes::STRING,
-                        ],
-                        [
-                            "externalPropertyName" => "email",
-                            "hubspotPropertyName" => "email",
-                            "dataType" => HubSpotTypes::STRING,
-                        ]
-                    ]
-                ],
-                "DEAL" => [
-                    "properties" => [
-                        [
-                            "externalPropertyName" => "id",
-                            "hubspotPropertyName" => "hs_object_id",
-                            "dataType" => HubSpotTypes::NUMBER,
-                        ],
-                        [
-                            "externalPropertyName" => "totalPrice",
-                            "hubspotPropertyName" => "amount",
-                            "dataType" => HubSpotTypes::NUMBER,
-                        ],
-                        [
-                            "externalPropertyName" => "dateOrdered",
-                            "hubspotPropertyName" => "createdate",
-                            "dataType" => HubSpotTypes::DATETIME,
-                        ],
-                        [
-                            "externalPropertyName" => "orderStage",
-                            "hubspotPropertyName" => "dealstage",
-                            "dataType" => HubSpotTypes::STRING,
-                        ],
-                    ]
-                ],
-                "PRODUCT" => [
-                    "properties" => [
-                        [
-                          "externalPropertyName" => "defaultPrice",
-                          "hubspotPropertyName" => "price",
-                          "dataType" => HubSpotTypes::NUMBER,
-                        ],
-                        [
-                          "externalPropertyName" => "defaultSku",
-                          "hubspotPropertyName" => "hs_sku",
-                          "dataType" => HubSpotTypes::STRING,
-                        ],
-                        [
-                            "externalPropertyName" => "title",
-                            "hubspotPropertyName" => "name",
-                            "dataType" => HubSpotTypes::STRING,
-                        ],
-                    ]
-                ],
-                "LINE_ITEM" => [
-                    "properties" => [
-                        [
-                            "externalPropertyName" => "id",
-                            "hubspotPropertyName" => "hs_object_id",
-                            "dataType" => HubSpotTypes::NUMBER,
-                        ],
-                        [
-                            "externalPropertyName" => "description",
-                            "hubspotPropertyName" => "description",
-                            "dataType" => HubSpotTypes::STRING,
-                        ],
-                        [
-                            "externalPropertyName" => "sku",
-                            "hubspotPropertyName" => "hs_sku",
-                            "dataType" => HubSpotTypes::STRING,
-                        ],
-                    ]
-                ]
-            ]
-        ];
+                HubSpotObjectTypes::CONTACT =>
+                    $mappingService->createObjectMapping([
+                        $mappingService->createPropertyMapping("userId", "hs_object_id", HubSpotDataTypes::STRING),
+                        $mappingService->createPropertyMapping("email", "email", HubSpotDataTypes::STRING),
+                    ]),
 
-        return $settings;
+
+                HubSpotObjectTypes::DEAL =>
+                    $mappingService->createObjectMapping([
+                        $mappingService->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::STRING),
+                        $mappingService->createPropertyMapping("totalPrice", "amount", HubSpotDataTypes::STRING),
+                        $mappingService->createPropertyMapping("dateOrdered", "createdate", HubSpotDataTypes::DATETIME),
+                        $mappingService->createPropertyMapping("orderStage", "dealstage", HubSpotDataTypes::STRING),
+                    ]),
+
+
+                HubSpotObjectTypes::PRODUCT =>
+                    $mappingService->createObjectMapping([
+                        $mappingService->createPropertyMapping("defaultPrice", "price", HubSpotDataTypes::NUMBER),
+                        $mappingService->createPropertyMapping("defaultSku", "hs_sku", HubSpotDataTypes::STRING),
+                        $mappingService->createPropertyMapping("title", "name", HubSpotDataTypes::STRING),
+                    ]),
+
+
+                HubSpotObjectTypes::LINE_ITEM =>
+                    $mappingService->createObjectMapping([
+                        $mappingService->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::NUMBER),
+                        $mappingService->createPropertyMapping("description", "description", HubSpotDataTypes::STRING),
+                        $mappingService->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
+                    ]),
+            ]
+        ]);
     }
 }

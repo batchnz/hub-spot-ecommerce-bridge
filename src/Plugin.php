@@ -139,7 +139,7 @@ class Plugin extends CraftPlugin
     /**
      * Registers all of the events to handle
      */
-    protected function registerEvents()
+    protected function registerEvents(): void
     {
         Event::on(
             Order::class,
@@ -148,11 +148,21 @@ class Plugin extends CraftPlugin
         );
     }
 
-    protected function registerPluginComponents()
+    protected function registerPluginComponents(): void
     {
         $this->setComponents([
             'mapping' => MappingService::class,
         ]);
+    }
+
+    /**
+     * Returns the mapping service
+     *
+     * @return MappingService
+     */
+    public function getMapping(): MappingService
+    {
+        return $this->get('mapping');
     }
 
 }
