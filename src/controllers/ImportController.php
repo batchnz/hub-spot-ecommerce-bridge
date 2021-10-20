@@ -14,7 +14,12 @@ namespace batchnz\hubspotecommercebridge\controllers;
 use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
+use craft\commerce\elements\Order;
+use craft\commerce\elements\Product;
+use craft\commerce\models\Customer;
+use craft\commerce\services\Customers;
 use craft\web\Controller;
+use SevenShores\Hubspot\Factory as HubSpotFactory;
 
 /**
  * ImportData Controller
@@ -36,9 +41,8 @@ use craft\web\Controller;
  * @package   HubspotEcommerceBridge
  * @since     1.0.0
  */
-class ImportDataController extends Controller
+class ImportController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
@@ -53,28 +57,52 @@ class ImportDataController extends Controller
     // =========================================================================
 
     /**
-     * Handle a request going to our plugin's index action URL,
-     * e.g.: actions/hub-spot-ecommerce-bridge/import-data
-     *
-     * @return mixed
+     * Handle the incoming request from the import webhook and
+     * return the counts of the objects to be imported.
      */
     public function actionIndex()
     {
-        $result = 'Welcome to the ImportDataController actionIndex() method';
-
-        return $result;
+        $request = Craft::$app->getRequest();
+        return $this->asJson($request);
     }
 
+
     /**
-     * Handle a request going to our plugin's actionDoSomething URL,
-     * e.g.: actions/hub-spot-ecommerce-bridge/import-data/do-something
+     * Handle a request going to our plugin's index action URL,
+     * e.g.: actions/hub-spot-ecommerce-bridge/import
      *
      * @return mixed
      */
-    public function actionDoSomething()
+    public function actionTemp()
     {
-        $result = 'Welcome to the ImportDataController actionDoSomething() method';
 
-        return $result;
+//        $orders = Order::findAll();
+//        $customers = new Customers();
+//        $customers = $customers->getAllCustomers();
+
+        //TODO make it send in batches of 200
+        $products = Product::findAll();
+
+        $productMessages = array_map(function ($product) {
+            $milliseconds = round(microtime(true) * 1000);
+            return (
+                [
+                    "action" => "UPSERT",
+                    "changedAt" => $milliseconds,
+                    "externalObjectId" => $product->defaultSku,
+                    "properties" => [
+                        "defaultPrice" => $product->defaultPrice,
+                        "defaultSku" => $product->defaultSku,
+                        "title" => $product->title,
+                    ]
+                ]
+            );
+        }, $products);
+
+        $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
+
+        $success = $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, "PRODUCT", $productMessages);
+
+        return $this->asJson($productMessages);
     }
 }
