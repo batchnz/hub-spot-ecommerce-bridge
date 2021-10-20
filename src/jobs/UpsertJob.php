@@ -1,4 +1,5 @@
 <?php
+
 /**
  * HubSpot Ecommerce Bridge plugin for Craft CMS 3.x
  *
@@ -8,9 +9,9 @@
  * @copyright Copyright (c) 2021 Daniel Siemers
  */
 
-namespace batchhubspotecommercebridge\hubspotecommercebridge\jobs;
+namespace batchnz\hubspotecommercebridge\jobs;
 
-use batchhubspotecommercebridge\hubspotecommercebridge\HubspotEcommerceBridge;
+use batchnz\hubspotecommercebridge\HubspotEcommerceBridge;
 
 use Craft;
 use craft\queue\BaseJob;
