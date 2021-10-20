@@ -12,14 +12,15 @@
 namespace batchnz\hubspotecommercebridge;
 
 
+use batchnz\hubspotecommercebridge\services\MappingService;
 use Craft;
 use craft\base\Plugin as CraftPlugin;
-use craft\services\Plugins;
-use craft\events\PluginEvent;
-use craft\web\UrlManager;
-use craft\events\RegisterUrlRulesEvent;
+use craft\commerce\elements\Order;
 
+use modules\core\services\PalettesService;
 use yii\base\Event;
+
+use batchnz\hubspotecommercebridge\listeners\OrderListener;
 
 /**
  * Craft plugins are very much like little applications in and of themselves. We’ve made
@@ -38,14 +39,23 @@ use yii\base\Event;
  */
 class Plugin extends CraftPlugin
 {
+    public const STORE_ID = "craft-commerce-bridge";
+    public const STORE_LABEL = "Craft Commerce Bridge";
+    public const STORE_ADMIN_URI = "https://naturalpaint.co.nz/admin";
+
+    public const HUBSPOT_API_KEY = "a9691424-5a0c-4451-81b2-8f2f7e4300bc";
+
+    public const WEBHOOK_URI = "https://46ff-47-72-252-144.ngrok.io/actions/hub-spot-ecommerce-bridge/import";
+
+
     // Static Properties
     // =========================================================================
 
     /**
      * Static property that is an instance of this plugin class so that it can be accessed via
-     * HubspotEcommerceBridge::$plugin
+     * Plugin::$plugin
      *
-     * @var HubspotEcommerceBridge
+     * @var Plugin
      */
     public static $plugin;
 
@@ -78,7 +88,7 @@ class Plugin extends CraftPlugin
 
     /**
      * Set our $plugin static property to this class so that it can be accessed via
-     * HubspotEcommerceBridge::$plugin
+     * Plugin::$plugin
      *
      * Called after the plugin class is instantiated; do any one-time initialization
      * here such as hooks and events.
@@ -92,34 +102,8 @@ class Plugin extends CraftPlugin
         parent::init();
         self::$plugin = $this;
 
-        // Register our site routes
-        Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_SITE_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['siteActionTrigger1'] = 'hub-spot-ecommerce-bridge/import-data';
-            }
-        );
-
-        // Register our CP routes
-        Event::on(
-            UrlManager::class,
-            UrlManager::EVENT_REGISTER_CP_URL_RULES,
-            function (RegisterUrlRulesEvent $event) {
-                $event->rules['cpActionTrigger1'] = 'hub-spot-ecommerce-bridge/import-data/do-something';
-            }
-        );
-
-        // Do something after we're installed
-        Event::on(
-            Plugins::class,
-            Plugins::EVENT_AFTER_INSTALL_PLUGIN,
-            function (PluginEvent $event) {
-                if ($event->plugin === $this) {
-                    // We were just installed
-                }
-            }
-        );
+        $this->registerEvents();
+        $this->registerPluginComponents();
 
         /**
          * Logging in Craft involves using one of the following methods:
@@ -151,5 +135,24 @@ class Plugin extends CraftPlugin
 
     // Protected Methods
     // =========================================================================
+
+    /**
+     * Registers all of the events to handle
+     */
+    protected function registerEvents()
+    {
+        Event::on(
+            Order::class,
+            Order::EVENT_AFTER_COMPLETE_ORDER,
+            [OrderListener::class, 'upsert']
+        );
+    }
+
+    protected function registerPluginComponents()
+    {
+        $this->setComponents([
+            'mapping' => MappingService::class,
+        ]);
+    }
 
 }
