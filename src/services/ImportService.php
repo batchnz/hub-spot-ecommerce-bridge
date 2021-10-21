@@ -4,7 +4,9 @@ namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\jobs\ImportAllJob;
 use batchnz\hubspotecommercebridge\Plugin;
+use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table;
@@ -99,23 +101,8 @@ class ImportService extends Component
      */
     public function importAll()
     {
-        $products = $this->fetchProducts();
-        $productsMessages = $this->prepareMessages(HubSpotObjectTypes::PRODUCT, HubSpotActionTypes::UPSERT, $products);
+        $queue = Craft::$app->getQueue();
 
-        $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
-
-        $successes = [];
-
-        foreach($productsMessages as $productsMessage) {
-            $success = $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::PRODUCT, $productsMessage);
-            $successes[] = $success;
-        }
-
-        return $successes;
-
-//        $customers = $this->fetchCustomers();
-//        $lineItems= $this->fetchLineItems();
-//        $orders = $this->fetchOrders();
-
+        $jobId = $queue->push(new ImportAllJob());
     }
 }

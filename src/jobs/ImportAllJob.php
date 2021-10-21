@@ -11,24 +11,18 @@
 
 namespace batchnz\hubspotecommercebridge\jobs;
 
-use batchnz\hubspotecommercebridge\HubspotEcommerceBridge;
+use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
+use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\queue\BaseJob;
+use SevenShores\Hubspot\Factory as HubSpotFactory;
 
 /**
- * UpsertJob job
- *
- * Jobs are run in separate process via a Queue of pending jobs. This allows
- * you to spin lengthy processing off into a separate PHP process that does not
- * block the main process.
- *
- * You can use it like this:
- *
- * use batchhubspotecommercebridge\hubspotecommercebridge\jobs\UpsertJob as UpsertJobJob;
  *
  * $queue = Craft::$app->getQueue();
- * $jobId = $queue->push(new UpsertJobJob([
+ * $jobId = $queue->push(new ImportAllJob([
  *     'description' => Craft::t('hub-spot-ecommerce-bridge', 'This overrides the default description'),
  *     'someAttribute' => 'someValue',
  * ]));
@@ -40,37 +34,47 @@ use craft\queue\BaseJob;
  * Passing in 'description' is optional, and only if you want to override the default
  * description.
  *
- * More info: https://github.com/yiisoft/yii2-queue
  *
  * @author    Daniel Siemers
  * @package   HubspotEcommerceBridge
  * @since     1.0.0
  */
-class UpsertJob extends BaseJob
+class ImportAllJob extends BaseJob
 {
-    // Public Properties
-    // =========================================================================
-
-    /**
-     * Some attribute
-     *
-     * @var string
-     */
-    public $someAttribute = 'Some Default';
-
     // Public Methods
     // =========================================================================
 
     /**
      * When the Queue is ready to run your job, it will call this method.
-     * You don't need any steps or any other special logic handling, just do the
-     * jobs that needs to be done here.
-     *
-     * More info: https://github.com/yiisoft/yii2-queue
      */
     public function execute($queue)
     {
-        // Do work here
+        $importService = Plugin::getInstance()->getImport();
+
+        $products = $importService->fetchProducts();
+        $productsMessages = $importService->prepareMessages(HubSpotObjectTypes::PRODUCT, HubSpotActionTypes::UPSERT, $products);
+
+        $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
+
+        $successes = [];
+
+        foreach($productsMessages as $i => $productsMessage) {
+            $this->setProgress(
+                $queue,
+                $i/count($productsMessages),
+                Craft::t('app', '{step, number} of {total, number}', [
+                    'step' => $i + 1,
+                    'total' => count($productsMessages),
+                ])
+            );
+
+            try {
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::PRODUCT, $productsMessage);
+            } catch (\Throwable $e) {
+                // Don’t let an exception block the queue
+                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+            }
+        }
     }
 
     // Protected Methods
@@ -83,6 +87,6 @@ class UpsertJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('hub-spot-ecommerce-bridge', 'UpsertJob');
+        return Craft::t('hub-spot-ecommerce-bridge', 'ImportAllJob');
     }
 }
