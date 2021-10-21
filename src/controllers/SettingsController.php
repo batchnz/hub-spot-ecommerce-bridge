@@ -59,8 +59,7 @@ class SettingsController extends Controller
 
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store
-     *
-     * @return Response
+     *     * @return Response
      * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
     public function actionCreateStore(): Response
@@ -83,59 +82,13 @@ class SettingsController extends Controller
     */
     public function actionUpsertSettings(): Response
     {
+        $mappingService = Plugin::getInstance()->getMapping();
+
+        $settings = $mappingService->createSettings();
+
         $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
-
-        $settings = $this->createSettings();
-
         $upserted = $hubspot->ecommerceBridge()->upsertSettings($settings);
 
         return $this->asJson($upserted);
-    }
-
-
-    /**
-     * Creates the mappings settings for Craft Coomerce objects to HubSpot objects
-     * @return array
-     */
-    public function createSettings() : array
-    {
-        $mappingService = Plugin::getInstance()->getMapping();
-
-        return ([
-            "enabled" => true,
-            "webhookUri" => Plugin::WEBHOOK_URI,
-            "mappings" => [
-                HubSpotObjectTypes::CONTACT =>
-                    $mappingService->createObjectMapping([
-                        $mappingService->createPropertyMapping("userId", "hs_object_id", HubSpotDataTypes::STRING),
-                        $mappingService->createPropertyMapping("email", "email", HubSpotDataTypes::STRING),
-                    ]),
-
-
-                HubSpotObjectTypes::DEAL =>
-                    $mappingService->createObjectMapping([
-                        $mappingService->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::STRING),
-                        $mappingService->createPropertyMapping("totalPrice", "amount", HubSpotDataTypes::STRING),
-                        $mappingService->createPropertyMapping("dateOrdered", "createdate", HubSpotDataTypes::DATETIME),
-                        $mappingService->createPropertyMapping("orderStage", "dealstage", HubSpotDataTypes::STRING),
-                    ]),
-
-
-                HubSpotObjectTypes::PRODUCT =>
-                    $mappingService->createObjectMapping([
-                        $mappingService->createPropertyMapping("defaultPrice", "price", HubSpotDataTypes::NUMBER),
-                        $mappingService->createPropertyMapping("defaultSku", "hs_sku", HubSpotDataTypes::STRING),
-                        $mappingService->createPropertyMapping("title", "name", HubSpotDataTypes::STRING),
-                    ]),
-
-
-                HubSpotObjectTypes::LINE_ITEM =>
-                    $mappingService->createObjectMapping([
-                        $mappingService->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::NUMBER),
-                        $mappingService->createPropertyMapping("description", "description", HubSpotDataTypes::STRING),
-                        $mappingService->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
-                    ]),
-            ]
-        ]);
     }
 }

@@ -23,4 +23,48 @@ class MappingService extends Component
             "dataType" => $dataType,
         ]);
     }
+
+    /**
+     * Creates the mappings settings for Craft Commerce objects to HubSpot objects
+     * @return array
+     */
+    public function createSettings() : array
+    {
+        return ([
+            "enabled" => true,
+            "webhookUri" => Plugin::WEBHOOK_URI,
+            "mappings" => [
+                HubSpotObjectTypes::CONTACT =>
+                    $this->createObjectMapping([
+                        $this->createPropertyMapping("userId", "hs_object_id", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("email", "email", HubSpotDataTypes::STRING),
+                    ]),
+
+
+                HubSpotObjectTypes::DEAL =>
+                    $this->createObjectMapping([
+                        $this->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("totalPrice", "amount", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("dateOrdered", "createdate", HubSpotDataTypes::DATETIME),
+                        $this->createPropertyMapping("orderStage", "dealstage", HubSpotDataTypes::STRING),
+                    ]),
+
+
+                HubSpotObjectTypes::PRODUCT =>
+                    $this->createObjectMapping([
+                        $this->createPropertyMapping("price", "price", HubSpotDataTypes::NUMBER),
+                        $this->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("title", "name", HubSpotDataTypes::STRING),
+                    ]),
+
+
+                HubSpotObjectTypes::LINE_ITEM =>
+                    $this->createObjectMapping([
+                        $this->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::NUMBER),
+                        $this->createPropertyMapping("description", "description", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
+                    ]),
+            ]
+        ]);
+    }
 }
