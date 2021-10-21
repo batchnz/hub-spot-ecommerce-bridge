@@ -57,7 +57,13 @@ class ImportAllJob extends BaseJob
         $customers = $importService->fetchCustomers();
         $customersMessages = $importService->prepareMessages(HubSpotObjectTypes::CONTACT, HubSpotActionTypes::UPSERT, $customers);
 
-        $totalMessages = count($productsMessages) + count($customersMessages);
+        $orders = $importService->fetchOrders();
+        $orderMessages = $importService->prepareMessages(HubSpotObjectTypes::DEAL, HubSpotActionTypes::UPSERT, $orders);
+
+        $lineItems = $importService->fetchLineItems();
+        $lineItemsMessages = $importService->prepareMessages(HubSpotObjectTypes::LINE_ITEM, HubSpotActionTypes::UPSERT, $lineItems);
+
+        $totalMessages = count($productsMessages) + count($customersMessages) + count($orderMessages) + count($lineItemsMessages);
         $completedMessages = 0;
 
         $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
@@ -87,7 +93,7 @@ class ImportAllJob extends BaseJob
             $completedMessages++;
             $this->setProgress(
                 $queue,
-                $completedMessages/$totalMessages,
+                $completedMessages / $totalMessages,
                 Craft::t('app', '{step, number} of {total, number}', [
                     'step' => $completedMessages,
                     'total' => $totalMessages,
@@ -101,11 +107,50 @@ class ImportAllJob extends BaseJob
                 Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
             }
         }
+
+        //Import Orders
+        foreach($orderMessages as $orderMessage) {
+            $completedMessages++;
+            $this->setProgress(
+                $queue,
+                $completedMessages/$totalMessages,
+                Craft::t('app', '{step, number} of {total, number}', [
+                    'step' => $completedMessages,
+                    'total' => $totalMessages,
+                ])
+            );
+
+            try {
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::DEAL, $orderMessage);
+            } catch (\Throwable $e) {
+                // Don’t let an exception block the queue
+                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+            }
+        }
+
+        //Import LineItems
+        foreach($lineItemsMessages as $lineItemsMessage) {
+            $completedMessages++;
+            $this->setProgress(
+                $queue,
+                $completedMessages/$totalMessages,
+                Craft::t('app', '{step, number} of {total, number}', [
+                    'step' => $completedMessages,
+                    'total' => $totalMessages,
+                ])
+            );
+
+            try {
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::LINE_ITEM, $lineItemsMessage);
+            } catch (\Throwable $e) {
+                // Don’t let an exception block the queue
+                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+            }
+        }
     }
 
     // Protected Methods
     // =========================================================================
-
     /**
      * Returns a default description for [[getDescription()]], if [[description]] isn’t set.
      *

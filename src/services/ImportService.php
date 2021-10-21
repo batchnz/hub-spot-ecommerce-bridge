@@ -2,12 +2,15 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
+use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\jobs\ImportAllJob;
+use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table;
+use SevenShores\Hubspot\Factory as HubSpotFactory;
 
 /**
  * Class ImportService
@@ -128,6 +131,105 @@ class ImportService extends Component
         ) : [];
     }
 
+    /**
+     * Fetches all of the data required for Order import from the database
+     * @return array
+     */
+    public function fetchOrders() :array
+    {
+        $query = new Query();
+        $query->select('
+            [[orders.id]] as orderId,
+            [[orders.total]] as total,
+            [[orders.dateOrdered]] as dateOrdered,
+            [[orders.orderStatusId]] as orderStatusId,
+            [[orders.customerId]] as customerId')
+            ->from('{{%commerce_orders}} as orders')
+            ->leftJoin(['elements' => Table::ELEMENTS], '[[orders.id]] = [[elements.id]]')
+            ->where(['elements.dateDeleted' => null]);
+
+        return $query->all();
+    }
+
+    /**
+     * Prepares the messages object to be sent as a request for Orders
+     * @param string $action
+     * @param array $order
+     * @return array
+     */
+    public function prepareOrderMessage(string $action, array $order): array
+    {
+        $milliseconds = round(microtime(true) * 1000);
+
+        //TODO link the properties imported to the properties set in settings
+        return (
+            [
+                "action" => $action,
+                "changedAt" => $milliseconds,
+                "externalObjectId" => $order['orderId'],
+                "properties" => [
+                    "totalPrice" => $order['total'],
+                    "dateOrdered" => $milliseconds."",
+                    "orderStage" => "processed",
+                ],
+                "associations" => [
+                    HubSpotObjectTypes::CONTACT => [$order['customerId'] ?? ""]
+                ]
+            ]
+        );
+    }
+
+    /**
+     * Fetches all of the data required for LineItem import from the database
+     * @return array
+     */
+    public function fetchLineItems() :array
+    {
+        $query = new Query();
+        $query->select('
+            [[lineItems.id]] as lineItemId,
+            [[lineItems.price]] as price,
+            [[lineItems.qty]] as qty,
+            [[lineItems.description]] as description,
+            [[orders.id]] as orderId,
+            [[variants.sku]] as sku')
+            ->from('{{%commerce_lineitems}} as lineItems')
+            ->leftJoin('{{%commerce_orders}} as orders', '[[lineItems.orderId]] = [[orders.id]]')
+            ->leftJoin('{{%commerce_variants}} as variants', '[[lineItems.purchasableId]] = [[variants.id]]')
+            ->leftJoin(['elements' => Table::ELEMENTS], '[[orders.id]] = [[elements.id]]')
+            ->where(['elements.dateDeleted' => null]);
+
+        return $query->all();
+    }
+
+    /**
+     * Prepares the messages object to be sent as a request for LineItems
+     * @param string $action
+     * @param array $lineItem
+     * @return array
+     */
+    public function prepareLineItemMessage(string $action, array $lineItem): array
+    {
+        $milliseconds = round(microtime(true) * 1000);
+
+        //TODO link the properties imported to the properties set in settings
+        return ($lineItem['orderId'] && $lineItem['sku']) ? (
+        [
+            "action" => $action,
+            "changedAt" => $milliseconds,
+            "externalObjectId" => $lineItem['lineItemId'],
+            "properties" => [
+                "price" => $lineItem['price'],
+                "qty" => $lineItem['qty'],
+                "description" => $lineItem['description'],
+            ],
+            "associations" => [
+                HubSpotObjectTypes::DEAL => [$lineItem['orderId'] ?? ""],
+                HubSpotObjectTypes::PRODUCT => [$lineItem['sku'] ?? ""]
+            ]
+        ]
+        ) : [];
+    }
 
     /**
      * Prepares object data to be in the correct form of the messages which will be sent in the request
@@ -146,6 +248,8 @@ class ImportService extends Component
             //TODO Abstract this in to use the correct method based on the object type passed in
             if ($objectType === HubSpotObjectTypes::PRODUCT) return $this->prepareProductMessage($action, $object);
             if ($objectType === HubSpotObjectTypes::CONTACT) return $this->prepareCustomerMessage($action, $object);
+            if ($objectType === HubSpotObjectTypes::DEAL) return $this->prepareOrderMessage($action, $object);
+            if ($objectType === HubSpotObjectTypes::LINE_ITEM) return $this->prepareLineItemMessage($action, $object);
 
         }, $objects);
 

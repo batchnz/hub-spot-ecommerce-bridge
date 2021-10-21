@@ -61,7 +61,8 @@ class MappingService extends Component
                 HubSpotObjectTypes::LINE_ITEM =>
                     $this->createObjectMapping([
                         $this->createPropertyMapping("description", "description", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("qty", "quantity", HubSpotDataTypes::NUMBER),
+                        $this->createPropertyMapping("price", "price", HubSpotDataTypes::NUMBER),
                     ]),
             ]
         ]);
