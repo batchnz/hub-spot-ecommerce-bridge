@@ -12,6 +12,7 @@
 namespace batchnz\hubspotecommercebridge;
 
 
+use batchnz\hubspotecommercebridge\services\ImportService;
 use batchnz\hubspotecommercebridge\services\MappingService;
 use Craft;
 use craft\base\Plugin as CraftPlugin;
@@ -45,7 +46,7 @@ class Plugin extends CraftPlugin
 
     public const HUBSPOT_API_KEY = "a9691424-5a0c-4451-81b2-8f2f7e4300bc";
 
-    public const WEBHOOK_URI = "https://46ff-47-72-252-144.ngrok.io/actions/hub-spot-ecommerce-bridge/import";
+    public const WEBHOOK_URI = null;
 
 
     // Static Properties
@@ -152,6 +153,7 @@ class Plugin extends CraftPlugin
     {
         $this->setComponents([
             'mapping' => MappingService::class,
+            'import' => ImportService::class,
         ]);
     }
 
@@ -163,6 +165,16 @@ class Plugin extends CraftPlugin
     public function getMapping(): MappingService
     {
         return $this->get('mapping');
+    }
+
+    /**
+     * Returns the import service
+     *
+     * @return ImportService
+     */
+    public function getImport(): ImportService
+    {
+        return $this->get('import');
     }
 
 }

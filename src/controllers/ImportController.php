@@ -14,12 +14,11 @@ namespace batchnz\hubspotecommercebridge\controllers;
 use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
-use craft\commerce\elements\Order;
 use craft\commerce\elements\Product;
-use craft\commerce\models\Customer;
-use craft\commerce\services\Customers;
+use craft\db\Table;
 use craft\web\Controller;
 use SevenShores\Hubspot\Factory as HubSpotFactory;
+use craft\db\Query;
 
 /**
  * ImportData Controller
@@ -57,52 +56,15 @@ class ImportController extends Controller
     // =========================================================================
 
     /**
-     * Handle the incoming request from the import webhook and
-     * return the counts of the objects to be imported.
+     * Handles incoming request to import all data
      */
     public function actionIndex()
     {
-        $request = Craft::$app->getRequest();
-        return $this->asJson($request);
-    }
 
+        $importService = Plugin::getInstance()->getImport();
 
-    /**
-     * Handle a request going to our plugin's index action URL,
-     * e.g.: actions/hub-spot-ecommerce-bridge/import
-     *
-     * @return mixed
-     */
-    public function actionTemp()
-    {
+        $imported = $importService->importAll();
 
-//        $orders = Order::findAll();
-//        $customers = new Customers();
-//        $customers = $customers->getAllCustomers();
-
-        //TODO make it send in batches of 200
-        $products = Product::findAll();
-
-        $productMessages = array_map(function ($product) {
-            $milliseconds = round(microtime(true) * 1000);
-            return (
-                [
-                    "action" => "UPSERT",
-                    "changedAt" => $milliseconds,
-                    "externalObjectId" => $product->defaultSku,
-                    "properties" => [
-                        "defaultPrice" => $product->defaultPrice,
-                        "defaultSku" => $product->defaultSku,
-                        "title" => $product->title,
-                    ]
-                ]
-            );
-        }, $products);
-
-        $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
-
-        $success = $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, "PRODUCT", $productMessages);
-
-        return $this->asJson($productMessages);
+        return $this->asJson($imported);
     }
 }
