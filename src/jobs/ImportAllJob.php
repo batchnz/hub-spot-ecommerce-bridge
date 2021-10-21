@@ -54,22 +54,48 @@ class ImportAllJob extends BaseJob
         $products = $importService->fetchProducts();
         $productsMessages = $importService->prepareMessages(HubSpotObjectTypes::PRODUCT, HubSpotActionTypes::UPSERT, $products);
 
+        $customers = $importService->fetchCustomers();
+        $customersMessages = $importService->prepareMessages(HubSpotObjectTypes::CONTACT, HubSpotActionTypes::UPSERT, $customers);
+
+        $totalMessages = count($productsMessages) + count($customersMessages);
+        $completedMessages = 0;
+
         $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
 
-        $successes = [];
-
-        foreach($productsMessages as $i => $productsMessage) {
+        //Import Products
+        foreach($productsMessages as $productsMessage) {
+            $completedMessages++;
             $this->setProgress(
                 $queue,
-                $i/count($productsMessages),
+                $completedMessages/$totalMessages,
                 Craft::t('app', '{step, number} of {total, number}', [
-                    'step' => $i + 1,
-                    'total' => count($productsMessages),
+                    'step' => $completedMessages,
+                    'total' => $totalMessages,
                 ])
             );
 
             try {
                 $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::PRODUCT, $productsMessage);
+            } catch (\Throwable $e) {
+                // Don’t let an exception block the queue
+                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+            }
+        }
+
+        //Import Customers
+        foreach($customersMessages as $customersMessage) {
+            $completedMessages++;
+            $this->setProgress(
+                $queue,
+                $completedMessages/$totalMessages,
+                Craft::t('app', '{step, number} of {total, number}', [
+                    'step' => $completedMessages,
+                    'total' => $totalMessages,
+                ])
+            );
+
+            try {
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::CONTACT, $customersMessage);
             } catch (\Throwable $e) {
                 // Don’t let an exception block the queue
                 Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
@@ -87,6 +113,6 @@ class ImportAllJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('hub-spot-ecommerce-bridge', 'ImportAllJob');
+        return Craft::t('hub-spot-ecommerce-bridge', 'Import All Craft Commerce Data to HubSpot');
     }
 }

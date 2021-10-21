@@ -36,14 +36,14 @@ class MappingService extends Component
             "mappings" => [
                 HubSpotObjectTypes::CONTACT =>
                     $this->createObjectMapping([
-                        $this->createPropertyMapping("userId", "hs_object_id", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("email", "email", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("firstName", "firstname", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("lastName", "lastname", HubSpotDataTypes::STRING),
                     ]),
 
 
                 HubSpotObjectTypes::DEAL =>
                     $this->createObjectMapping([
-                        $this->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("totalPrice", "amount", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("dateOrdered", "createdate", HubSpotDataTypes::DATETIME),
                         $this->createPropertyMapping("orderStage", "dealstage", HubSpotDataTypes::STRING),
@@ -60,7 +60,6 @@ class MappingService extends Component
 
                 HubSpotObjectTypes::LINE_ITEM =>
                     $this->createObjectMapping([
-                        $this->createPropertyMapping("id", "hs_object_id", HubSpotDataTypes::NUMBER),
                         $this->createPropertyMapping("description", "description", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
                     ]),
