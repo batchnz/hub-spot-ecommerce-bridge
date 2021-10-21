@@ -2,15 +2,13 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
+use batchnz\hubspotecommercebridge\enums\HubSpotDealStages;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\jobs\ImportAllJob;
-use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
 
 /**
  * Class ImportService
@@ -142,9 +140,10 @@ class ImportService extends Component
             [[orders.id]] as orderId,
             [[orders.total]] as total,
             [[orders.dateOrdered]] as dateOrdered,
-            [[orders.orderStatusId]] as orderStatusId,
-            [[orders.customerId]] as customerId')
+            [[orders.customerId]] as customerId,
+            [[orderStatuses.handle]] as orderStatus,')
             ->from('{{%commerce_orders}} as orders')
+            ->leftJoin('{{%commerce_orderstatuses}} as orderStatuses', '[[orders.orderStatusId]] = [[orderStatuses.id]]')
             ->leftJoin(['elements' => Table::ELEMENTS], '[[orders.id]] = [[elements.id]]')
             ->where(['elements.dateDeleted' => null]);
 
@@ -169,8 +168,8 @@ class ImportService extends Component
                 "externalObjectId" => $order['orderId'],
                 "properties" => [
                     "totalPrice" => $order['total'],
-                    "dateOrdered" => $milliseconds."",
-                    "orderStage" => "processed",
+                    "dateOrdered" => (strtotime($order['dateOrdered'])*1000)."",
+                    "orderStage" => $order['orderStatus'] ? HubSpotDealStages::PIPELINE[$order['orderStatus']] : HubSpotDealStages::ABANDONED,
                 ],
                 "associations" => [
                     HubSpotObjectTypes::CONTACT => [$order['customerId'] ?? ""]
