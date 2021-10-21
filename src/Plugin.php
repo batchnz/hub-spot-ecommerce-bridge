@@ -12,12 +12,16 @@
 namespace batchnz\hubspotecommercebridge;
 
 
+use batchnz\hubspotecommercebridge\listeners\ProductListener;
+use batchnz\hubspotecommercebridge\listeners\VariantListener;
 use batchnz\hubspotecommercebridge\services\ImportService;
 use batchnz\hubspotecommercebridge\services\MappingService;
 use Craft;
+use craft\base\Element;
 use craft\base\Plugin as CraftPlugin;
 use craft\commerce\elements\Order;
 
+use craft\commerce\elements\Variant;
 use modules\core\services\PalettesService;
 use yii\base\Event;
 
@@ -143,9 +147,15 @@ class Plugin extends CraftPlugin
     protected function registerEvents(): void
     {
         Event::on(
-            Order::class,
-            Order::EVENT_AFTER_COMPLETE_ORDER,
-            [OrderListener::class, 'upsert']
+            Variant::class,
+            Element::EVENT_AFTER_SAVE,
+            [ProductListener::class, 'upsert']
+        );
+
+        Event::on(
+            Variant::class,
+            Element::EVENT_AFTER_DELETE,
+            [ProductListener::class, 'delete']
         );
     }
 
