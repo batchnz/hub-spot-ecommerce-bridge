@@ -25,6 +25,46 @@
             suggestEnvVars: true,
             autofocus: true,
         }) }}
+
+        {{ forms.autosuggestField({
+            first: true,
+            label: 'HubSpot Store ID',
+            instructions: "The store ID of your HubSpot store.",
+            id: 'storeId',
+            name: 'settings[storeId]',
+            placeholder: "",
+            value: settings.storeId,
+            errors: settings.getErrors('storeId'),
+            suggestEnvVars: false,
+            autofocus: false,
+        }) }}
+
+        {{ forms.autosuggestField({
+            first: true,
+            label: 'HubSpot Store Label',
+            instructions: "The store label of your HubSpot store.",
+            id: 'storeLabel',
+            name: 'settings[storeLabel]',
+            placeholder: "",
+            value: settings.storeLabel,
+            errors: settings.getErrors('storeLabel'),
+            suggestEnvVars: false,
+            autofocus: false,
+        }) }}
+
+        {{ forms.autosuggestField({
+            first: true,
+            label: 'HubSpot Store Admin URI',
+            instructions: "The store admin URI of your HubSpot store.",
+            id: 'storeAdminUri',
+            name: 'settings[storeAdminUri]',
+            placeholder: "",
+            value: settings.storeAdminUri,
+            errors: settings.getErrors('storeAdminUri'),
+            suggestEnvVars: false,
+            autofocus: false,
+        }) }}
+
     </form>
 
 {% endblock %}

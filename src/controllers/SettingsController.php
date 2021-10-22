@@ -91,6 +91,9 @@ class SettingsController extends Controller
 
         $settings = Plugin::getInstance()->getSettings();
         $settings->apiKey = $data['apiKey'] ?? $settings->apiKey;
+        $settings->storeId = $data['storeId'] ?? $settings->storeId;
+        $settings->storeLabel = $data['storeLabel'] ?? $settings->storeLabel;
+        $settings->storeAdminUri = $data['storeAdminUri'] ?? $settings->storeAdminUri;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(
@@ -107,7 +110,7 @@ class SettingsController extends Controller
 
         if (!$pluginSettingsSaved) {
             Craft::$app->getSession()->setError(
-                Plugin::t('Couldn’t save settings.')
+                'Couldn’t save settings.'
             );
             return $this->renderTemplate(
                 Plugin::HANDLE . '/settings/_index', compact('settings')
