@@ -12,16 +12,23 @@
 namespace batchnz\hubspotecommercebridge;
 
 
+use batchnz\hubspotecommercebridge\listeners\LineItemListener;
 use batchnz\hubspotecommercebridge\listeners\ProductListener;
 use batchnz\hubspotecommercebridge\listeners\VariantListener;
 use batchnz\hubspotecommercebridge\services\ImportService;
 use batchnz\hubspotecommercebridge\services\MappingService;
+use batchnz\hubspotecommercebridge\models\Settings;
 use Craft;
 use craft\base\Element;
 use craft\base\Plugin as CraftPlugin;
 use craft\commerce\elements\Order;
 
 use craft\commerce\elements\Variant;
+use craft\events\RegisterCpNavItemsEvent;
+use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\UrlHelper;
+use craft\web\twig\variables\Cp;
+use craft\web\UrlManager;
 use modules\core\services\PalettesService;
 use yii\base\Event;
 
@@ -53,6 +60,9 @@ class Plugin extends CraftPlugin
     public const WEBHOOK_URI = null;
 
 
+    public const HANDLE = "hub-spot-ecommerce-bridge";
+
+
     // Static Properties
     // =========================================================================
 
@@ -79,14 +89,14 @@ class Plugin extends CraftPlugin
      *
      * @var bool
      */
-    public $hasCpSettings = false;
+    public $hasCpSettings = true;
 
     /**
      * Set to `true` if the plugin should have its own section (main nav item) in the control panel.
      *
      * @var bool
      */
-    public $hasCpSection = false;
+    public $hasCpSection = true;
 
     // Public Methods
     // =========================================================================
@@ -107,8 +117,11 @@ class Plugin extends CraftPlugin
         parent::init();
         self::$plugin = $this;
 
-        $this->registerEvents();
-        $this->registerPluginComponents();
+        Craft::setAlias('@batchnz\hubspotecommercebridge', $this->getBasePath());
+
+        $this->_registerEvents();
+        $this->_registerPluginComponents();
+        $this->_registerCpRoutes();
 
         /**
          * Logging in Craft involves using one of the following methods:
@@ -138,13 +151,45 @@ class Plugin extends CraftPlugin
         );
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getCpNavItem(): array
+    {
+        $ret = parent::getCpNavItem();
+
+        $ret['label'] = 'HubSpot Commerce';
+        $ret['url'] = self::HANDLE . '/mappings';
+
+        if (Craft::$app->getUser()->checkPermission('accessPlugin-xero')) {
+            $ret['subnav']['mappings'] = [
+                'label' => 'Mappings',
+                'url' => self::HANDLE . '/mappings'
+            ];
+        }
+
+        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $ret['subnav']['settings'] = [
+                'label' => 'Settings',
+                'url' => self::HANDLE . '/settings'
+            ];
+        }
+
+        return $ret;
+    }
+
+    public function getSettingsResponse()
+    {
+        Craft::$app->controller->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings'));
+    }
+
     // Protected Methods
     // =========================================================================
 
     /**
      * Registers all of the events to handle
      */
-    protected function registerEvents(): void
+    protected function _registerEvents(): void
     {
         // On Product (variant) save
         Event::on(
@@ -173,9 +218,43 @@ class Plugin extends CraftPlugin
             Element::EVENT_AFTER_DELETE,
             [OrderListener::class, 'delete']
         );
+
+        // On add LineItem to Order
+        Event::on(
+            Order::class,
+            Order::EVENT_AFTER_ADD_LINE_ITEM,
+            [LineItemListener::class, 'upsert'],
+        );
+
+        //On remove LineItem from Order
+        Event::on(
+            Order::class,
+            Order::EVENT_AFTER_REMOVE_LINE_ITEM,
+            [LineItemListener::class, 'delete'],
+        );
     }
 
-    protected function registerPluginComponents(): void
+    // Private Methods
+    // =========================================================================
+
+    /**
+     * Registers custom CP routes
+     *
+     * @return void
+     */
+    protected function _registerCpRoutes()
+    {
+        Event::on(
+            UrlManager::class,
+            UrlManager::EVENT_REGISTER_CP_URL_RULES,
+            function (RegisterUrlRulesEvent $event) {
+                $event->rules[Plugin::HANDLE . '/settings'] = Plugin::HANDLE . '/settings/edit';
+                $event->rules[Plugin::HANDLE . '/mappings'] = Plugin::HANDLE . '/mappings/edit';
+            }
+        );
+    }
+
+    protected function _registerPluginComponents(): void
     {
         $this->setComponents([
             'mapping' => MappingService::class,
@@ -201,6 +280,11 @@ class Plugin extends CraftPlugin
     public function getImport(): ImportService
     {
         return $this->get('import');
+    }
+
+    protected function createSettingsModel()
+    {
+        return new Settings();
     }
 
 }

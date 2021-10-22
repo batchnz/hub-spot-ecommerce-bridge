@@ -19,6 +19,7 @@ use craft\web\Controller;
 
 use SevenShores\Hubspot\Factory as HubSpotFactory;
 use yii\base\Exception;
+use yii\web\HttpException;
 use yii\web\Response;
 
 /**
@@ -56,6 +57,67 @@ class SettingsController extends Controller
 
     // Public Methods
     // =========================================================================
+
+    public function init()
+    {
+        $this->requireAdmin();
+        parent::init();
+    }
+
+    /**
+     * Creates the store in HubSpot that will sync with the craft commerce store
+     * @return Response
+     */
+    public function actionEdit(): Response
+    {
+        $settings = Plugin::getInstance()->getSettings();
+
+        $variables = [
+            'settings' => $settings
+        ];
+
+        return $this->renderTemplate(Plugin::HANDLE . '/settings/_index', $variables);
+    }
+
+    /**
+     * @return Response|null
+     */
+    public function actionSaveSettings()
+    {
+        $this->requirePostRequest();
+
+        $params = Craft::$app->getRequest()->getBodyParams();
+        $data = $params['settings'];
+
+        $settings = Plugin::getInstance()->getSettings();
+        $settings->apiKey = $data['apiKey'] ?? $settings->apiKey;
+
+        if (!$settings->validate()) {
+            Craft::$app->getSession()->setError(
+                'Couldn’t save settings.'
+            );
+            return $this->renderTemplate(
+                Plugin::HANDLE . '/settings/_index', compact('settings')
+            );
+        }
+
+        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(
+            Plugin::getInstance(), $settings->toArray()
+        );
+
+        if (!$pluginSettingsSaved) {
+            Craft::$app->getSession()->setError(
+                Plugin::t('Couldn’t save settings.')
+            );
+            return $this->renderTemplate(
+                Plugin::HANDLE . '/settings/_index', compact('settings')
+            );
+        }
+
+        Craft::$app->getSession()->setNotice('Settings saved.');
+
+        return $this->redirectToPostedUrl();
+    }
 
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store

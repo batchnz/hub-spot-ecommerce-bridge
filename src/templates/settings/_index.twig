@@ -1,0 +1,30 @@
+{% extends "_layouts/cp" %}
+
+{% set selectedSubnavItem = 'settings' %}
+{% set docTitle = 'HubSpot Commerce Settings' %}
+{% set title = 'Settings' %}
+{% set fullPageForm = true %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        {{ actionInput('hub-spot-ecommerce-bridge/settings/save-settings') }}
+        {{ redirectInput('hub-spot-ecommerce-bridge/settings') }}
+        {{ csrfInput() }}
+
+        {{ forms.autosuggestField({
+            first: true,
+            label: 'HubSpot API Key',
+            instructions: "The API Key for your HubSpot app.",
+            id: 'apiKey',
+            name: 'settings[apiKey]',
+            placeholder: "",
+            value: settings.apiKey,
+            errors: settings.getErrors('apiKey'),
+            suggestEnvVars: true,
+            autofocus: true,
+        }) }}
+    </form>
+
+{% endblock %}
