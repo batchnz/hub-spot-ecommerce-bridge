@@ -146,16 +146,32 @@ class Plugin extends CraftPlugin
      */
     protected function registerEvents(): void
     {
+        // On Product (variant) save
         Event::on(
             Variant::class,
             Element::EVENT_AFTER_SAVE,
             [ProductListener::class, 'upsert']
         );
 
+        // On Product (variant) delete
         Event::on(
             Variant::class,
             Element::EVENT_AFTER_DELETE,
             [ProductListener::class, 'delete']
+        );
+
+        // On Order save
+        Event::on(
+            Order::class,
+            Element::EVENT_AFTER_SAVE,
+            [OrderListener::class, 'upsert']
+        );
+
+        // On Order delete
+        Event::on(
+            Order::class,
+            Element::EVENT_AFTER_DELETE,
+            [OrderListener::class, 'delete']
         );
     }
 

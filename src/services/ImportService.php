@@ -165,10 +165,10 @@ class ImportService extends Component
             [
                 "action" => $action,
                 "changedAt" => $milliseconds,
-                "externalObjectId" => $order['orderId'],
+                "externalObjectId" => $order['orderId']."",
                 "properties" => [
-                    "totalPrice" => $order['total'],
-                    "dateOrdered" => (strtotime($order['dateOrdered'])*1000)."",
+                    "totalPrice" => $order['total']."",
+                    "dateOrdered" => $order['dateOrdered'] ? (strtotime($order['dateOrdered'])*1000)."" : $milliseconds."", //TODO figure out better way to pass in the date time
                     "orderStage" => $order['orderStatus'] ? HubSpotDealStages::PIPELINE[$order['orderStatus']] : HubSpotDealStages::ABANDONED,
                 ],
                 "associations" => [
