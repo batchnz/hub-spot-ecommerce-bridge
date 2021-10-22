@@ -11,8 +11,8 @@ namespace batchnz\hubspotecommercebridge\enums;
  */
 abstract class HubSpotObjectTypes
 {
-    public const CONTACT = "CONTACT";
-    public const DEAL = "DEAL";
-    public const PRODUCT = "PRODUCT";
-    public const LINE_ITEM = "LINE_ITEM";
+    public const CONTACT = "CONTACT"; //Customer (Craft Equivalent)
+    public const DEAL = "DEAL"; //Order (Craft Equivalent)
+    public const PRODUCT = "PRODUCT"; //Variant (Craft Equivalent)
+    public const LINE_ITEM = "LINE_ITEM"; //LineItem (Craft Equivalent)
 }
