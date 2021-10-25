@@ -51,8 +51,7 @@ class OrderListener
 
     protected static function modelOrder($order): array
     {
-        //TODO make this dynamic dependant on th
-        //e settings set by the user
+        //TODO make this dynamic dependant on the settings set by the user
         return ([
             "orderId" => $order->id,
             "total" => $order->total,

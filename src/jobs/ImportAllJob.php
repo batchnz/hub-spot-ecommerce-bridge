@@ -66,7 +66,7 @@ class ImportAllJob extends BaseJob
         $totalMessages = count($productsMessages) + count($customersMessages) + count($orderMessages) + count($lineItemsMessages);
         $completedMessages = 0;
 
-        $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
+        $hubspot = Plugin::getInstance()->getHubSpot();
 
         //Import Products
         foreach($productsMessages as $productsMessage) {

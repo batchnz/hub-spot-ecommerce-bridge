@@ -60,7 +60,7 @@ class ActionOneJob extends BaseJob
 
         $messages = $importService->prepareMessages($this->objectType, $this->action, [$this->object]);
 
-        $hubspot = HubSpotFactory::create(Plugin::HUBSPOT_API_KEY);
+        $hubspot = Plugin::getInstance()->getHubSpot();
 
         $totalMessages = count($messages);
         $completedMessages = 0;

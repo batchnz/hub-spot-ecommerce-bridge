@@ -161,6 +161,7 @@ class ImportService extends Component
         $milliseconds = round(microtime(true) * 1000);
 
         //TODO link the properties imported to the properties set in settings
+        //TODO fix up the format of this data so they all have the correct data type (e.g. String instead of integer)
         return (
             [
                 "action" => $action,
