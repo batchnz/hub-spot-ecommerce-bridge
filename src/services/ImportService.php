@@ -106,11 +106,11 @@ class ImportService extends Component
      */
     public function prepareCustomerMessage(string $action, array $customer): array
     {
-        $email = $customer['userEmail'] ?? $customer['orderEmail'];
-        $firstName = $customer['userFirstName'] ?? $customer['billingFirstName'];
-        $firstName = $firstName ?? $customer['shippingFirstName'];
-        $lastName = $customer['userLastName'] ?? $customer['billingLastName'];
-        $lastName = $lastName ?? $customer['shippingLastName'];
+        $email = !empty($customer['userEmail']) ? $customer['userEmail'] : $customer['orderEmail'];
+        $firstName = !empty($customer['userFirstName']) ? $customer['userFirstName'] : $customer['billingFirstName'];
+        $firstName = !empty($firstName) ? $firstName : $customer['shippingFirstName'];
+        $lastName = !empty($customer['userLastName']) ? $customer['userLastName'] : $customer['billingLastName'];
+        $lastName = !empty($lastName) ? $lastName : $customer['shippingLastName'];
 
         $milliseconds = round(microtime(true) * 1000);
 
@@ -121,9 +121,9 @@ class ImportService extends Component
             "changedAt" => $milliseconds,
             "externalObjectId" => $customer['customerId'],
             "properties" => [
-                "email" => $email ?? "",
-                "firstName" => $firstName ?? "",
-                "lastName" => $lastName ?? "",
+                "email" => !empty($email) ? $email : "",
+                "firstName" => !empty($firstName) ? $firstName : $email,
+                "lastName" => !empty($lastName) ? $lastName : "",
             ]
         ]
         ) : [];

@@ -12,6 +12,7 @@
 namespace batchnz\hubspotecommercebridge;
 
 
+use batchnz\hubspotecommercebridge\listeners\CustomerListener;
 use batchnz\hubspotecommercebridge\listeners\LineItemListener;
 use batchnz\hubspotecommercebridge\listeners\ProductListener;
 use batchnz\hubspotecommercebridge\listeners\VariantListener;
@@ -24,6 +25,7 @@ use craft\base\Plugin as CraftPlugin;
 use craft\commerce\elements\Order;
 
 use craft\commerce\elements\Variant;
+use craft\commerce\services\Customers;
 use craft\commerce\services\LineItems;
 use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterUrlRulesEvent;
@@ -219,7 +221,7 @@ class Plugin extends CraftPlugin
             [OrderListener::class, 'delete']
         );
 
-        // On add LineItem to Order
+        // On save LineItem
         Event::on(
             LineItems::class,
             LineItems::EVENT_AFTER_SAVE_LINE_ITEM,
@@ -232,6 +234,15 @@ class Plugin extends CraftPlugin
             Order::EVENT_AFTER_APPLY_REMOVE_LINE_ITEM,
             [LineItemListener::class, 'delete'],
         );
+
+        // On save Customer
+        Event::on(
+            Customers::class,
+            Customers::EVENT_AFTER_SAVE_CUSTOMER,
+            [CustomerListener::class, 'upsert'],
+        );
+
+        // ALERT: No way to delete customers as of now
     }
 
     // Private Methods
