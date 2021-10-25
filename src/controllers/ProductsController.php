@@ -23,26 +23,14 @@ use yii\web\HttpException;
 use yii\web\Response;
 
 /**
- * Settings Controller
+ * Products Controller
  *
- * Generally speaking, controllers are the middlemen between the front end of
- * the CP/website and your plugin’s services. They contain action methods which
- * handle individual tasks.
- *
- * A common pattern used throughout Craft involves a controller action gathering
- * post data, saving it on a model, passing the model off to a service, and then
- * responding to the request appropriately depending on the service method’s response.
- *
- * Action methods begin with the prefix “action”, followed by a description of what
- * the method does (for example, actionSaveIngredient()).
- *
- * https://craftcms.com/docs/plugins/controllers
  *
  * @author    Daniel Siemers
  * @package   HubspotEcommerceBridge
  * @since     1.0.0
  */
-class SettingsController extends Controller
+class ProductsController extends Controller
 {
 
     // Protected Properties
@@ -76,7 +64,7 @@ class SettingsController extends Controller
             'settings' => $settings
         ];
 
-        return $this->renderTemplate(Plugin::HANDLE . '/settings/_index', $variables);
+        return $this->renderTemplate(Plugin::HANDLE . '/mappings/products/_index', $variables);
     }
 
     /**
@@ -120,40 +108,5 @@ class SettingsController extends Controller
         Craft::$app->getSession()->setNotice('Settings saved.');
 
         return $this->redirectToPostedUrl();
-    }
-
-    /**
-     * Creates the store in HubSpot that will sync with the craft commerce store
-     *     * @return Response
-     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
-     */
-    public function actionCreateStore(): Response
-    {
-        $store = [
-          "id" => Plugin::getInstance()->getSettings()->storeId,
-          "label" => Plugin::getInstance()->getSettings()->storeLabel,
-          "adminUri" => Plugin::getInstance()->getSettings()->storeAdminUri,
-        ];
-
-        $hubspot = Plugin::getInstance()->getHubSpot();
-        $created = $hubspot->ecommerceBridge()->createOrUpdateStore($store);
-
-        return $this->asJson($created);
-    }
-
-    /**
-    * Uses the HubSpot SDK to create of update the settings related to the data mappings
-    * @return Response
-    */
-    public function actionUpsertSettings(): Response
-    {
-        $mappingService = Plugin::getInstance()->getMapping();
-
-        $settings = $mappingService->createSettings();
-
-        $hubspot = Plugin::getInstance()->getHubSpot();
-        $upserted = $hubspot->ecommerceBridge()->upsertSettings($settings);
-
-        return $this->asJson($upserted);
     }
 }

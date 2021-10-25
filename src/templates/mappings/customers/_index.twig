@@ -1,0 +1,28 @@
+{% extends "hub-spot-ecommerce-bridge/_layouts/mappings" %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+
+    <h2>{{ "Customers" }}</h2>
+
+    <p>{{ "Lorem Ipsum Dolor Sit Amet" }}</p>
+
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/mappings/save">
+        {{ redirectInput('hub-spot-ecommerce-bridge/mappings/customers') }}
+        {{ csrfInput() }}
+
+
+        {{ forms.textField({
+            label: 'Attention',
+            id: 'attention',
+            name: 'attention',
+            placeholder: "hello world",
+            value: "hello world",
+            errors: "hello world",
+        }) }}
+
+        <input type="submit" class="btn submit" value="{{ 'Save' }}">
+    </form>
+{% endblock %}
