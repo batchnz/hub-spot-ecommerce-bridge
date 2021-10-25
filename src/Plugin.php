@@ -24,6 +24,7 @@ use craft\base\Plugin as CraftPlugin;
 use craft\commerce\elements\Order;
 
 use craft\commerce\elements\Variant;
+use craft\commerce\services\LineItems;
 use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
@@ -220,15 +221,15 @@ class Plugin extends CraftPlugin
 
         // On add LineItem to Order
         Event::on(
-            Order::class,
-            Order::EVENT_AFTER_ADD_LINE_ITEM,
+            LineItems::class,
+            LineItems::EVENT_AFTER_SAVE_LINE_ITEM,
             [LineItemListener::class, 'upsert'],
         );
 
         //On remove LineItem from Order
         Event::on(
             Order::class,
-            Order::EVENT_AFTER_REMOVE_LINE_ITEM,
+            Order::EVENT_AFTER_APPLY_REMOVE_LINE_ITEM,
             [LineItemListener::class, 'delete'],
         );
     }
