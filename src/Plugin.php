@@ -30,6 +30,7 @@ use craft\helpers\UrlHelper;
 use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
 use modules\core\services\PalettesService;
+use SevenShores\Hubspot\Factory as HubSpotFactory;
 use yii\base\Event;
 
 use batchnz\hubspotecommercebridge\listeners\OrderListener;
@@ -54,8 +55,6 @@ class Plugin extends CraftPlugin
     public const STORE_ID = "craft-commerce-bridge";
     public const STORE_LABEL = "Craft Commerce Bridge";
     public const STORE_ADMIN_URI = "https://naturalpaint.co.nz/admin";
-
-    public const HUBSPOT_API_KEY = "a9691424-5a0c-4451-81b2-8f2f7e4300bc";
 
     public const WEBHOOK_URI = null;
 
@@ -159,16 +158,16 @@ class Plugin extends CraftPlugin
         $ret = parent::getCpNavItem();
 
         $ret['label'] = 'HubSpot Commerce';
-        $ret['url'] = self::HANDLE . '/mappings';
+        $ret['url'] = self::HANDLE;
 
-        if (Craft::$app->getUser()->checkPermission('accessPlugin-xero')) {
+        if (true) {
             $ret['subnav']['mappings'] = [
                 'label' => 'Mappings',
                 'url' => self::HANDLE . '/mappings'
             ];
         }
 
-        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+        if (true) {
             $ret['subnav']['settings'] = [
                 'label' => 'Settings',
                 'url' => self::HANDLE . '/settings'
@@ -248,17 +247,29 @@ class Plugin extends CraftPlugin
             UrlManager::class,
             UrlManager::EVENT_REGISTER_CP_URL_RULES,
             function (RegisterUrlRulesEvent $event) {
+                $event->rules[Plugin::HANDLE] = Plugin::HANDLE . '/customers/edit';
                 $event->rules[Plugin::HANDLE . '/settings'] = Plugin::HANDLE . '/settings/edit';
-                $event->rules[Plugin::HANDLE . '/mappings'] = Plugin::HANDLE . '/mappings/edit';
+                $event->rules[Plugin::HANDLE . '/mappings'] = Plugin::HANDLE . '/customers/edit';
+                $event->rules[Plugin::HANDLE . '/mappings/customers'] = Plugin::HANDLE . '/customers/edit';
+                $event->rules[Plugin::HANDLE . '/mappings/orders'] = Plugin::HANDLE . '/orders/edit';
+                $event->rules[Plugin::HANDLE . '/mappings/products'] = Plugin::HANDLE . '/products/edit';
+                $event->rules[Plugin::HANDLE . '/mappings/line-items'] = Plugin::HANDLE . '/line-items/edit';
             }
         );
     }
 
     protected function _registerPluginComponents(): void
     {
+        $settings = $this->getSettings();
+
+        // Create an preconfigured instance of the HubSpot provider
+        // to be injected into each instance of the api service
+        $hubspot = HubSpotFactory::create($settings->apiKey);
+
         $this->setComponents([
             'mapping' => MappingService::class,
             'import' => ImportService::class,
+            'hubspot' => $hubspot,
         ]);
     }
 
@@ -281,6 +292,18 @@ class Plugin extends CraftPlugin
     {
         return $this->get('import');
     }
+
+    /**
+     * Returns the HubSpot provider
+     *
+     * @return HubSpotFactory
+     */
+    public function getHubSpot(): HubSpotFactory
+    {
+        return $this->get('hubspot');
+    }
+
+
 
     protected function createSettingsModel()
     {
