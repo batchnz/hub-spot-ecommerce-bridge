@@ -61,7 +61,6 @@ class Plugin extends CraftPlugin
 
     public const WEBHOOK_URI = null;
 
-
     public const HANDLE = "hub-spot-ecommerce-bridge";
 
 

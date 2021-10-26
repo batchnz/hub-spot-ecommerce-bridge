@@ -13,7 +13,9 @@ namespace batchnz\hubspotecommercebridge\controllers;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\models\CustomerSettings;
 use batchnz\hubspotecommercebridge\Plugin;
+use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use Craft;
 use craft\web\Controller;
 
@@ -60,10 +62,12 @@ class CustomersController extends Controller
      */
     public function actionEdit(): Response
     {
-        $settings = Plugin::getInstance()->getSettings();
+        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::CONTACT]);
+
+        $customerSettings = CustomerSettings::fromHubspotObject($hubspotObject);
 
         $variables = [
-            'settings' => $settings
+            'customerSettings' => $customerSettings
         ];
 
         return $this->renderTemplate(Plugin::HANDLE . '/mappings/customers/_index', $variables);
@@ -76,39 +80,57 @@ class CustomersController extends Controller
     {
         $this->requirePostRequest();
 
-        $params = Craft::$app->getRequest()->getBodyParams();
-        $data = $params['settings'];
+        $data = $this->request->getBodyParams();
 
-        $settings = Plugin::getInstance()->getSettings();
-        $settings->apiKey = $data['apiKey'] ?? $settings->apiKey;
-        $settings->storeId = $data['storeId'] ?? $settings->storeId;
-        $settings->storeLabel = $data['storeLabel'] ?? $settings->storeLabel;
-        $settings->storeAdminUri = $data['storeAdminUri'] ?? $settings->storeAdminUri;
+//        // Connection ID is a required parameter
+//        if (!empty($data['firstname']) ) {
+//            $this->setFailFlash(Plugin::t('Couldn\'t find the organisation\'s connection.'));
+//            return null;
+//        }
 
-        if (!$settings->validate()) {
-            Craft::$app->getSession()->setError(
-                'Couldn’t save settings.'
-            );
-            return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
-            );
+        $customerSettings = new CustomerSettings();
+        $customerSettings->attributes = $data;
+
+        if (! $customerSettings->validate()) {
+            return $this->_redirectError($customerSettings, $customerSettings->getErrors());
         }
 
-        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(
-            Plugin::getInstance(), $settings->toArray()
+        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::CONTACT]);
+
+        $hubspotObject->settings = $customerSettings->attributes;
+
+        if (! $hubspotObject->validate()) {
+            return $this->_redirectError($customerSettings, $hubspotObject->getErrors());
+        }
+
+        $hubspotObject->save();
+
+        $this->setSuccessFlash('Customer settings saved.');
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Handles controller save errors
+     *
+     * @param CustomerSettings $customerSettings Customer Settings model
+     *
+     * @return void
+     */
+    private function _redirectError(
+        CustomerSettings $customerSettings,
+        array $errors = []
+    ) {
+        Craft::error(
+            'Failed to save Customer settings with validation errors: '
+            . json_encode($errors)
         );
 
-        if (!$pluginSettingsSaved) {
-            Craft::$app->getSession()->setError(
-                'Couldn’t save settings.'
-            );
-            return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
-            );
-        }
+        $this->setFailFlash('Couldn’t save Customer settings.');
 
-        Craft::$app->getSession()->setNotice('Settings saved.');
+        Craft::$app
+            ->getUrlManager()
+            ->setRouteParams(['customerSettings' => $customerSettings]);
 
-        return $this->redirectToPostedUrl();
+        return null;
     }
 }

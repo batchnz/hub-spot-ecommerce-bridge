@@ -6,21 +6,51 @@
 
     <h2>{{ "Customers" }}</h2>
 
-    <p>{{ "Lorem Ipsum Dolor Sit Amet" }}</p>
+    <p>{{ "Set the mappings for customer data between Craft Commerce and HubSpot" }}</p>
 
     <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-        <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/mappings/save">
+        <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/customers/save-settings">
         {{ redirectInput('hub-spot-ecommerce-bridge/mappings/customers') }}
         {{ csrfInput() }}
 
+        {{ forms.textField({
+            label: 'First Name',
+            id: 'firstName',
+            name: 'firstName',
+            placeholder: customerSettings.firstName,
+            value: customerSettings.firstName,
+            errors: customerSettings.getErrors('firstName'),
+            disabled: true,
+        }) }}
 
         {{ forms.textField({
-            label: 'Attention',
-            id: 'attention',
-            name: 'attention',
-            placeholder: "hello world",
-            value: "hello world",
-            errors: "hello world",
+            label: 'Last Name',
+            id: 'lastName',
+            name: 'lastName',
+            placeholder: customerSettings.lastName,
+            value: customerSettings.lastName,
+            errors: customerSettings.getErrors('lastName'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Email',
+            id: 'email',
+            name: 'email',
+            placeholder: customerSettings.email,
+            value: customerSettings.email,
+            errors: customerSettings.getErrors('email'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Phone Number',
+            id: 'phoneNumber',
+            name: 'phoneNumber',
+            placeholder: customerSettings.phoneNumber,
+            value: customerSettings.phoneNumber,
+            errors: customerSettings.getErrors('phoneNumber'),
+            disabled: false,
         }) }}
 
         <input type="submit" class="btn submit" value="{{ 'Save' }}">
