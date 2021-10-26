@@ -80,12 +80,12 @@ class ImportAllJob extends BaseJob
                 ])
             );
 
-            try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::PRODUCT, $productsMessage);
-            } catch (\Throwable $e) {
-                // Don’t let an exception block the queue
-                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
-            }
+//            try {
+            $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::PRODUCT, $productsMessage);
+//            } catch (\Throwable $e) {
+//                // Don’t let an exception block the queue
+//                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+//            }
         }
 
         //Import Customers
@@ -100,12 +100,12 @@ class ImportAllJob extends BaseJob
                 ])
             );
 
-            try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::CONTACT, $customersMessage);
-            } catch (\Throwable $e) {
-                // Don’t let an exception block the queue
-                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
-            }
+//            try {
+            $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::CONTACT, $customersMessage);
+//            } catch (\Throwable $e) {
+//                // Don’t let an exception block the queue
+//                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+//            }
         }
 
         //Import Orders
@@ -120,12 +120,12 @@ class ImportAllJob extends BaseJob
                 ])
             );
 
-            try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::DEAL, $orderMessage);
-            } catch (\Throwable $e) {
-                // Don’t let an exception block the queue
-                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
-            }
+//            try {
+            $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::DEAL, $orderMessage);
+//            } catch (\Throwable $e) {
+//                // Don’t let an exception block the queue
+//                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+//            }
         }
 
         //Import LineItems
@@ -140,12 +140,12 @@ class ImportAllJob extends BaseJob
                 ])
             );
 
-            try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::LINE_ITEM, $lineItemsMessage);
-            } catch (\Throwable $e) {
-                // Don’t let an exception block the queue
-                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
-            }
+//            try {
+            $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::LINE_ITEM, $lineItemsMessage);
+//            } catch (\Throwable $e) {
+//                // Don’t let an exception block the queue
+//                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
+//            }
         }
     }
 
