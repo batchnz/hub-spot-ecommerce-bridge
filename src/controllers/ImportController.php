@@ -56,6 +56,12 @@ class ImportController extends Controller
     // Public Methods
     // =========================================================================
 
+    public function init()
+    {
+        $this->requireAdmin();
+        parent::init();
+    }
+
     /**
      * Handles incoming request to import all data
      */
