@@ -15,7 +15,10 @@ class CustomerSettings extends Model
     public string $firstName;
     public string $lastName;
     public string $email;
-    public ?string $phoneNumber;
+    public ?string $phoneNumber = null;
+    public ?string $address = null;
+    public ?string $city = null;
+    public ?string $business = null;
 
 
     public function __construct()
@@ -44,10 +47,13 @@ class CustomerSettings extends Model
 
         $customerSettings = new static();
 
-        $customerSettings->firstName = $settings->firstName ?? "";
-        $customerSettings->lastName = $settings->lastName ?? "";
-        $customerSettings->email = $settings->email ?? "";
+        $customerSettings->firstName = $settings->firstName ?? self::FIRST_NAME;
+        $customerSettings->lastName = $settings->lastName ?? self::LAST_NAME;
+        $customerSettings->email = $settings->email ?? self::EMAIL;
         $customerSettings->phoneNumber = $settings->phoneNumber ?? null;
+        $customerSettings->address = $settings->address ?? null;
+        $customerSettings->city = $settings->city ?? null;
+        $customerSettings->business = $settings->business ?? null;
 
         return $customerSettings;
     }
@@ -63,7 +69,7 @@ class CustomerSettings extends Model
             ['lastName', 'compare', 'compareValue' => self::LAST_NAME],
             ['email', 'compare', 'compareValue' => self::EMAIL],
 
-            [['firstName', 'lastName', 'email', 'phoneNumber'], 'string'],
+            [['firstName', 'lastName', 'email', 'phoneNumber', 'address', 'city', 'business'], 'string'],
         ];
     }
 }

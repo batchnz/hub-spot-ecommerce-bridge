@@ -53,6 +53,36 @@
             disabled: false,
         }) }}
 
+        {{ forms.textField({
+            label: 'Address',
+            id: 'address',
+            name: 'address',
+            placeholder: customerSettings.address,
+            value: customerSettings.address,
+            errors: customerSettings.getErrors('address'),
+            disabled: false,
+        }) }}
+
+        {{ forms.textField({
+            label: 'City',
+            id: 'city',
+            name: 'city',
+            placeholder: customerSettings.city,
+            value: customerSettings.city,
+            errors: customerSettings.getErrors('city'),
+            disabled: false,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Business',
+            id: 'business',
+            name: 'business',
+            placeholder: customerSettings.business,
+            value: customerSettings.business,
+            errors: customerSettings.getErrors('business'),
+            disabled: false,
+        }) }}
+
         <input type="submit" class="btn submit" value="{{ 'Save' }}">
     </form>
 {% endblock %}
