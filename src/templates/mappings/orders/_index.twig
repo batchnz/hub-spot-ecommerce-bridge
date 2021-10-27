@@ -6,21 +6,71 @@
 
     <h2>{{ "Orders" }}</h2>
 
-    <p>{{ "Lorem Ipsum Dolor Sit Amet" }}</p>
+    <p>{{ "Set the mappings for order data between Craft Commerce and HubSpot" }}</p>
 
     <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-        <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/mappings/save">
-        {{ redirectInput('hub-spot-ecommerce-bridge/mappings/customers') }}
+        <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/orders/save-settings">
+        {{ redirectInput('hub-spot-ecommerce-bridge/mappings/orders') }}
         {{ csrfInput() }}
 
+        {{ forms.textField({
+            label: 'Order Stage',
+            id: 'orderStage',
+            name: 'orderStage',
+            placeholder: orderSettings.orderStage,
+            value: orderSettings.orderStage,
+            errors: orderSettings.getErrors('orderStage'),
+            disabled: true,
+        }) }}
 
         {{ forms.textField({
-            label: 'Attention',
-            id: 'attention',
-            name: 'attention',
-            placeholder: "hello world",
-            value: "hello world",
-            errors: "hello world",
+            label: 'Total Price',
+            id: 'totalPrice',
+            name: 'totalPrice',
+            placeholder: orderSettings.totalPrice,
+            value: orderSettings.totalPrice,
+            errors: orderSettings.getErrors('totalPrice'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Deal Type',
+            id: 'dealType',
+            name: 'dealType',
+            placeholder: orderSettings.dealType,
+            value: orderSettings.dealType,
+            errors: orderSettings.getErrors('dealType'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Order Number',
+            id: 'orderNumber',
+            name: 'orderNumber',
+            placeholder: orderSettings.orderNumber,
+            value: orderSettings.orderNumber,
+            errors: orderSettings.getErrors('orderNumber'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Date Created',
+            id: 'dateCreated',
+            name: 'dateCreated',
+            placeholder: orderSettings.dateCreated,
+            value: orderSettings.dateCreated,
+            errors: orderSettings.getErrors('dateCreated'),
+            disabled: false,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Order Short Number',
+            id: 'orderShortNumber',
+            name: 'orderShortNumber',
+            placeholder: orderSettings.orderShortNumber,
+            value: orderSettings.orderShortNumber,
+            errors: orderSettings.getErrors('orderShortNumber'),
+            disabled: false,
         }) }}
 
         <input type="submit" class="btn submit" value="{{ 'Save' }}">
