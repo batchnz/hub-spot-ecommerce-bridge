@@ -31,7 +31,7 @@ class MappingService extends Component
     {
         return ([
             "enabled" => true,
-            "webhookUri" => Plugin::WEBHOOK_URI,
+            "webhookUri" => null,
             "mappings" => [
                 HubSpotObjectTypes::CONTACT =>
                     $this->createObjectMapping([
@@ -48,7 +48,7 @@ class MappingService extends Component
                 HubSpotObjectTypes::DEAL =>
                     $this->createObjectMapping([
                         $this->createPropertyMapping("totalPrice", "amount", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("dateOrdered", "createdate", HubSpotDataTypes::DATETIME),
+                        $this->createPropertyMapping("dateCreated", "createdate", HubSpotDataTypes::DATETIME),
                         $this->createPropertyMapping("orderStage", "dealstage", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("orderShortNumber", "dealname", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("dealType", "dealtype", HubSpotDataTypes::STRING),
