@@ -156,4 +156,18 @@ class SettingsController extends Controller
 
         return $this->asJson($upserted);
     }
+
+    /**
+     * Uses the HubSpot SDK to create of update the settings related to the data mappings
+     * @return Response
+     */
+    public function actionGetSettings(): Response
+    {
+        $mappingService = Plugin::getInstance()->getMapping();
+
+        $hubspot = Plugin::getInstance()->getHubSpot();
+        $settings = $hubspot->ecommerceBridge()->getSettings();
+
+        return $this->asJson($settings);
+    }
 }
