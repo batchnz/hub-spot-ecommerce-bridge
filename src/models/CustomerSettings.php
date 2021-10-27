@@ -17,6 +17,7 @@ class CustomerSettings extends Model
     public string $email;
     public ?string $phoneNumber;
 
+
     public function __construct()
     {
         parent::__construct();

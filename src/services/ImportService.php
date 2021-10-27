@@ -51,7 +51,7 @@ class ImportService extends Component
      * @param array $product
      * @return array
      */
-    public function prepareProductMessage(string $action, array $product): array
+    public function prepareProductMessage(array $product, string $action): array
     {
         $milliseconds = round(microtime(true) * 1000);
 
@@ -114,7 +114,7 @@ class ImportService extends Component
      * @param array $customer
      * @return array
      */
-    public function prepareCustomerMessage(string $action, array $customer): array
+    public function prepareContactMessage(array $customer, string $action): array
     {
         $email = !empty($customer['userEmail']) ? $customer['userEmail'] : $customer['orderEmail'];
 
@@ -182,7 +182,7 @@ class ImportService extends Component
      * @param array $order
      * @return array
      */
-    public function prepareOrderMessage(string $action, array $order): array
+    public function prepareDealMessage(array $order, string $action): array
     {
         $milliseconds = round(microtime(true) * 1000);
 
@@ -237,7 +237,7 @@ class ImportService extends Component
      * @param array $lineItem
      * @return array
      */
-    public function prepareLineItemMessage(string $action, array $lineItem): array
+    public function prepareLineItemMessage(array $lineItem, string $action): array
     {
         $milliseconds = round(microtime(true) * 1000);
 
@@ -272,23 +272,13 @@ class ImportService extends Component
      */
     public function prepareMessages(string $objectType, string $action, array $objects): array
     {
-//        $functionName = $this->normalizeObjectType($objectType);
-//
-//        if (!method_exists(self::class, $functionName)) {
-//            throw \Exception('method ' . $functionName . ' does not exist');
-//        }
-//
-//        $messages = array_map([self::class, $functionName], $objects);
+        $functionName = $this->normalizeObjectType($objectType);
 
-        $messages = array_map(function ($object) use ($objectType, $action) {
+        if (!method_exists(self::class, $functionName)) {
+            throw new \Exception('method ' . $functionName . ' does not exist');
+        }
 
-            //TODO Abstract this in to use the correct method based on the object type passed in
-            if ($objectType === HubSpotObjectTypes::PRODUCT) return $this->prepareProductMessage($action, $object);
-            if ($objectType === HubSpotObjectTypes::CONTACT) return $this->prepareCustomerMessage($action, $object);
-            if ($objectType === HubSpotObjectTypes::DEAL) return $this->prepareOrderMessage($action, $object);
-            if ($objectType === HubSpotObjectTypes::LINE_ITEM) return $this->prepareLineItemMessage($action, $object);
-
-        }, $objects);
+        $messages = array_map([self::class, $functionName], $objects, [$action]);
 
         //Removes any empty arrays if there are any
         $messages = array_filter($messages);
@@ -330,5 +320,12 @@ class ImportService extends Component
         $jobId = $queue->push(new DeleteAllJob());
 
         return "Delete All Craft Commerce Data from HubSpot has been queued with JobID " . $jobId;
+    }
+
+    public function normalizeObjectType($objectType)
+    {
+        $value = ucwords(str_replace(['-', '_'], ' ', $objectType));
+
+        return "prepare" . str_replace(' ', '', $value) . "Message";
     }
 }
