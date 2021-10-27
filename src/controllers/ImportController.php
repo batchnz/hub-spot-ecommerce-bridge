@@ -11,6 +11,7 @@
 
 namespace batchnz\hubspotecommercebridge\controllers;
 
+use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
@@ -60,11 +61,33 @@ class ImportController extends Controller
      */
     public function actionIndex()
     {
-
         $importService = Plugin::getInstance()->getImport();
 
         $imported = $importService->importAll();
 
         return $this->asJson($imported);
+    }
+
+    /**
+     * Handles incoming request to delete all data
+     */
+    public function actionDeleteAll()
+    {
+
+        $importService = Plugin::getInstance()->getImport();
+
+        $deleted = $importService->deleteAll();
+
+        return $this->asJson($deleted);
+    }
+
+    public function actionCheckSync()
+    {
+
+        $hubspot = Plugin::getInstance()->getHubSpot();
+
+        $res = $hubspot->ecommerceBridge()->checkSyncStatus(Plugin::getInstance()->getSettings()->storeId, HubSpotObjectTypes::DEAL, 35933);
+
+        return $this->asJson($res);
     }
 }

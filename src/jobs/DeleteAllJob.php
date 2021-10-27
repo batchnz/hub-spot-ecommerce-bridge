@@ -40,7 +40,7 @@ use yii\base\Exception;
  * @package   HubspotEcommerceBridge
  * @since     1.0.0
  */
-class ImportAllJob extends BaseJob
+class DeleteAllJob extends BaseJob
 {
     // Public Methods
     // =========================================================================
@@ -53,16 +53,16 @@ class ImportAllJob extends BaseJob
         $importService = Plugin::getInstance()->getImport();
 
         $products = $importService->fetchProducts();
-        $productsMessages = $importService->prepareMessages(HubSpotObjectTypes::PRODUCT, HubSpotActionTypes::UPSERT, $products);
+        $productsMessages = $importService->prepareMessages(HubSpotObjectTypes::PRODUCT, HubSpotActionTypes::DELETE, $products);
 
         $customers = $importService->fetchCustomers();
-        $customersMessages = $importService->prepareMessages(HubSpotObjectTypes::CONTACT, HubSpotActionTypes::UPSERT, $customers);
+        $customersMessages = $importService->prepareMessages(HubSpotObjectTypes::CONTACT, HubSpotActionTypes::DELETE, $customers);
 
         $orders = $importService->fetchOrders();
-        $orderMessages = $importService->prepareMessages(HubSpotObjectTypes::DEAL, HubSpotActionTypes::UPSERT, $orders);
+        $orderMessages = $importService->prepareMessages(HubSpotObjectTypes::DEAL, HubSpotActionTypes::DELETE, $orders);
 
         $lineItems = $importService->fetchLineItems();
-        $lineItemsMessages = $importService->prepareMessages(HubSpotObjectTypes::LINE_ITEM, HubSpotActionTypes::UPSERT, $lineItems);
+        $lineItemsMessages = $importService->prepareMessages(HubSpotObjectTypes::LINE_ITEM, HubSpotActionTypes::DELETE, $lineItems);
 
         $totalMessages = count($productsMessages) + count($customersMessages) + count($orderMessages) + count($lineItemsMessages);
         $completedMessages = 0;
@@ -84,7 +84,7 @@ class ImportAllJob extends BaseJob
             try {
                 $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::PRODUCT, $productsMessage);
             } catch (\Throwable $e) {
-                throw new Exception("Failed to import products. {$e->getMessage()}");
+                throw new Exception("Failed to delete products. {$e->getMessage()}");
             }
         }
 
@@ -103,7 +103,7 @@ class ImportAllJob extends BaseJob
             try {
                 $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::CONTACT, $customersMessage);
             } catch (\Throwable $e) {
-                throw new Exception("Failed to import customers. {$e->getMessage()}");
+                throw new Exception("Failed to delete customers. {$e->getMessage()}");
             }
         }
 
@@ -122,7 +122,7 @@ class ImportAllJob extends BaseJob
             try {
                 $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::DEAL, $orderMessage);
             } catch (\Throwable $e) {
-                throw new Exception("Failed to import orders. {$e->getMessage()}");
+                throw new Exception("Failed to delete orders. {$e->getMessage()}");
             }
         }
 
@@ -138,11 +138,11 @@ class ImportAllJob extends BaseJob
                 ])
             );
 
-            try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::LINE_ITEM, $lineItemsMessage);
-            } catch (\Throwable $e) {
-                throw new Exception("Failed to import line items. {$e->getMessage()}");
-            }
+          try {
+            $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::LINE_ITEM, $lineItemsMessage);
+        } catch (\Throwable $e) {
+            throw new Exception("Failed to delete line items. {$e->getMessage()}");
+        }
         }
     }
 
@@ -155,6 +155,6 @@ class ImportAllJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('hub-spot-ecommerce-bridge', 'Import All Craft Commerce Data to HubSpot');
+        return Craft::t('hub-spot-ecommerce-bridge', 'Delete All Craft Commerce Data from HubSpot');
     }
 }
