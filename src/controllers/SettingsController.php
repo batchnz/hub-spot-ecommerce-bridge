@@ -154,7 +154,7 @@ class SettingsController extends Controller
         $hubspot = Plugin::getInstance()->getHubSpot();
         $upserted = $hubspot->ecommerceBridge()->upsertSettings($settings);
 
-        return $this->asJson($upserted);
+        return $this->asJson($settings);
     }
 
     /**

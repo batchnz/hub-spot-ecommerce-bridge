@@ -5,17 +5,35 @@ namespace batchnz\hubspotecommercebridge\services;
 use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\Plugin;
+use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
+use yii\base\Exception;
 
 class MappingService extends Component
 {
 
-    public function createObjectMapping(array $properties): array
+    public function createObjectMapping(string $objectType): array
     {
+        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => $objectType]);
+
+        $settings = json_decode($hubspotObject->settings);
+
+        if (json_last_error() === JSON_THROW_ON_ERROR) {
+            throw new Exception('Could not decode Mapping settings.');
+        }
+
+        $properties = [];
+
+        foreach ($settings as $externalPropertyName => $hubspotPropertyName) {
+            if ($hubspotPropertyName) {
+                $properties[] = $this->createPropertyMapping($externalPropertyName, $hubspotPropertyName);
+            }
+        }
+
         return (["properties" => $properties]);
     }
 
-    public function createPropertyMapping(string $externalPropertyName, string $hubspotPropertyName, string $dataType): array
+    public function createPropertyMapping(string $externalPropertyName, string $hubspotPropertyName, string $dataType = null): array
     {
         return ([
             "externalPropertyName" => $externalPropertyName,
@@ -34,42 +52,17 @@ class MappingService extends Component
             "webhookUri" => null,
             "mappings" => [
                 HubSpotObjectTypes::CONTACT =>
-                    $this->createObjectMapping([
-                        $this->createPropertyMapping("email", "email", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("firstName", "firstname", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("lastName", "lastname", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("phoneNumber", "phone", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("address", "address", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("city", "city", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("business", "company", HubSpotDataTypes::STRING),
-                    ]),
-
+                    $this->createObjectMapping(HubSpotObjectTypes::CONTACT),
 
                 HubSpotObjectTypes::DEAL =>
-                    $this->createObjectMapping([
-                        $this->createPropertyMapping("totalPrice", "amount", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("dateCreated", "createdate", HubSpotDataTypes::DATETIME),
-                        $this->createPropertyMapping("orderStage", "dealstage", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("orderShortNumber", "dealname", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("dealType", "dealtype", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("orderNumber", "ip__ecomm_bridge__order_number", HubSpotDataTypes::STRING),
-                    ]),
+                    $this->createObjectMapping(HubSpotObjectTypes::DEAL),
 
 
                 HubSpotObjectTypes::PRODUCT =>
-                    $this->createObjectMapping([
-                        $this->createPropertyMapping("price", "price", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("title", "name", HubSpotDataTypes::STRING),
-                    ]),
-
+                    $this->createObjectMapping(HubSpotObjectTypes::PRODUCT),
 
                 HubSpotObjectTypes::LINE_ITEM =>
-                    $this->createObjectMapping([
-                        $this->createPropertyMapping("description", "description", HubSpotDataTypes::STRING),
-                        $this->createPropertyMapping("qty", "quantity", HubSpotDataTypes::NUMBER),
-                        $this->createPropertyMapping("price", "price", HubSpotDataTypes::NUMBER),
-                    ]),
+                    $this->createObjectMapping(HubSpotObjectTypes::LINE_ITEM),
             ]
         ]);
     }

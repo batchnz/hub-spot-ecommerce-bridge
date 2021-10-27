@@ -105,7 +105,20 @@ class OrdersController extends Controller
 
         $hubspotObject->save();
 
-        $this->setSuccessFlash('Order settings saved.');
+        $hubspotApi = Plugin::getInstance()->getHubSpot();
+
+        $mappingService = Plugin::getInstance()->getMapping();
+        $settingsUpsert = $mappingService->createSettings();
+
+        $apiSettings = $hubspotApi->ecommerceBridge()->upsertSettings($settingsUpsert);
+
+        //TODO more advanced checks to see if the settings went through
+        if ($apiSettings->mappings) {
+            $this->setSuccessFlash('Order settings saved.');
+        } else {
+            $this->setFailFlash('Error while connecting to the HubSpot API.');
+        }
+
         return $this->redirectToPostedUrl();
     }
 
