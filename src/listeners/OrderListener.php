@@ -15,10 +15,9 @@ namespace batchnz\hubspotecommercebridge\listeners;
 use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\jobs\ActionOneJob;
-use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
 use craft\events\ModelEvent;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
+use DateTime;
 use yii\base\Event;
 
 class OrderListener
@@ -57,9 +56,11 @@ class OrderListener
         return ([
             "orderId" => $order->id,
             "total" => $order->total,
-            "dateOrdered" => "",
+            "dateCreated" => $order->dateCreated->format('Y-m-d\TH:i:sP'),
             "orderStatus" => $order->getOrderStatus() ? $order->getOrderStatus()->handle : $order->getOrderStatus(),
             "customerId" => $order->customerId,
+            "orderShortNumber" => $order->reference,
+            "orderNumber" => $order->number,
         ]);
     }
 }

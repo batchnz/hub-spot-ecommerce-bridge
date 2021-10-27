@@ -80,6 +80,14 @@ class CustomerListener
             "userLastName" => $user ? $user->lastName : "",
             "billingLastName" => $billingAddress ? $billingAddress->lastName : "",
             "shippingLastName" => $shippingAddress ? $shippingAddress->lastName : "",
+            "billingPhone" => $billingAddress ? $billingAddress->phone : "",
+            "shippingPhone" => $shippingAddress ? $shippingAddress->phone : "",
+            "billingAddress" => $billingAddress ? $billingAddress->address1 : "",
+            "shippingAddress" => $shippingAddress ? $shippingAddress->address1 : "",
+            "billingCity" => $billingAddress ? $billingAddress->city : "",
+            "shippingCity" => $shippingAddress ? $shippingAddress->city : "",
+            "billingBusiness" => $billingAddress ? $billingAddress->businessName : "",
+            "shippingBusiness" => $shippingAddress ? $shippingAddress->businessName : "",
         ]);
     }
 }

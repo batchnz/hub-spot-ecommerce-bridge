@@ -4,11 +4,13 @@ namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotDealStages;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\jobs\DeleteAllJob;
 use batchnz\hubspotecommercebridge\jobs\ImportAllJob;
 use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table;
+use yii\base\Exception;
 
 /**
  * Class ImportService
@@ -83,8 +85,16 @@ class ImportService extends Component
             ANY_VALUE([[orders.email]]) as orderEmail,
             [[billingAddress.firstName]] as billingFirstName,
             [[billingAddress.lastName]] as billingLastName,
+            [[billingAddress.address1]] as billingAddress,
+            [[billingAddress.city]] as billingCity,
+            [[billingAddress.phone]] as billingPhone,
+            [[billingAddress.businessName]] as billingBusiness,
             [[shippingAddress.firstName]] as shippingFirstName,
-            [[shippingAddress.lastName]] as shippingLastName')
+            [[shippingAddress.lastName]] as shippingLastName,
+            [[shippingAddress.address1]] as shippingAddress,
+            [[shippingAddress.city]] as shippingCity,
+            [[shippingAddress.phone]] as shippingPhone,
+            [[shippingAddress.businessName]] as shippingBusiness,')
             ->from('{{%commerce_customers}} as customers')
             ->leftJoin('{{%commerce_orders}} as orders', '[[customers.id]] = [[orders.customerId]]')
             ->leftJoin('{{%users}} as users', '[[customers.userId]] = [[users.id]]')
@@ -107,10 +117,20 @@ class ImportService extends Component
     public function prepareCustomerMessage(string $action, array $customer): array
     {
         $email = !empty($customer['userEmail']) ? $customer['userEmail'] : $customer['orderEmail'];
+
         $firstName = !empty($customer['userFirstName']) ? $customer['userFirstName'] : $customer['billingFirstName'];
         $firstName = !empty($firstName) ? $firstName : $customer['shippingFirstName'];
+
         $lastName = !empty($customer['userLastName']) ? $customer['userLastName'] : $customer['billingLastName'];
         $lastName = !empty($lastName) ? $lastName : $customer['shippingLastName'];
+
+        $phone = !empty($customer['billingPhone']) ? $customer['billingPhone'] : $customer['shippingPhone'];
+
+        $address = !empty($customer['billingAddress']) ? $customer['billingAddress'] : $customer['shippingAddress'];
+
+        $city = !empty($customer['billingCity']) ? $customer['billingCity'] : $customer['shippingCity'];
+
+        $business = !empty($customer['billingBusiness']) ? $customer['billingBusiness'] : $customer['shippingBusiness'];
 
         $milliseconds = round(microtime(true) * 1000);
 
@@ -124,6 +144,10 @@ class ImportService extends Component
                 "email" => !empty($email) ? $email : "",
                 "firstName" => !empty($firstName) ? $firstName : $email,
                 "lastName" => !empty($lastName) ? $lastName : "",
+                "phoneNumber" => !empty($phone) ? $phone : "",
+                "address" => !empty($address) ? $address : "",
+                "city" => !empty($city) ? $city : "",
+                "business" => !empty($business) ? $business : "",
             ]
         ]
         ) : [];
@@ -139,7 +163,9 @@ class ImportService extends Component
         $query->select('
             [[orders.id]] as orderId,
             [[orders.total]] as total,
-            [[orders.dateOrdered]] as dateOrdered,
+            [[orders.dateCreated]] as dateCreated,
+            [[orders.reference]] as orderShortNumber,
+            [[orders.number]] as orderNumber,
             [[orders.customerId]] as customerId,
             [[orderStatuses.handle]] as orderStatus,')
             ->from('{{%commerce_orders}} as orders')
@@ -166,11 +192,14 @@ class ImportService extends Component
             [
                 "action" => $action,
                 "changedAt" => $milliseconds,
-                "externalObjectId" => $order['orderId']."",
+                "externalObjectId" => $order['orderId'],
                 "properties" => [
                     "totalPrice" => $order['total']."",
-                    "dateOrdered" => $order['dateOrdered'] ? (strtotime($order['dateOrdered'])*1000)."" : $milliseconds."", //TODO figure out better way to pass in the date time
+                    "dateOrdered" => (strtotime($order['dateCreated']) * 1000)."", //TODO figure out better way to pass in the date time
                     "orderStage" => $order['orderStatus'] ? HubSpotDealStages::PIPELINE[$order['orderStatus']] : HubSpotDealStages::ABANDONED,
+                    "orderShortNumber" => $order['orderShortNumber']."",
+                    "dealType" => "existingbusiness",
+                    "orderNumber" => $order['orderNumber']."",
                 ],
                 "associations" => [
                     HubSpotObjectTypes::CONTACT => [$order['customerId'] ?? ""]
@@ -243,6 +272,14 @@ class ImportService extends Component
      */
     public function prepareMessages(string $objectType, string $action, array $objects): array
     {
+//        $functionName = $this->normalizeObjectType($objectType);
+//
+//        if (!method_exists(self::class, $functionName)) {
+//            throw \Exception('method ' . $functionName . ' does not exist');
+//        }
+//
+//        $messages = array_map([self::class, $functionName], $objects);
+
         $messages = array_map(function ($object) use ($objectType, $action) {
 
             //TODO Abstract this in to use the correct method based on the object type passed in
@@ -279,5 +316,19 @@ class ImportService extends Component
         $jobId = $queue->push(new ImportAllJob());
 
         return "Import All Craft Commerce Data to HubSpot has been queued with JobID " . $jobId;
+    }
+
+    /**
+     * Handle importing of all data. Queries the for all of the necessary datatypes
+     * and uses to import the necessary data and associations into HubSpot. The import will be
+     * sent to the queue as a job.
+     */
+    public function deleteAll()
+    {
+        $queue = Craft::$app->getQueue();
+
+        $jobId = $queue->push(new DeleteAllJob());
+
+        return "Delete All Craft Commerce Data from HubSpot has been queued with JobID " . $jobId;
     }
 }

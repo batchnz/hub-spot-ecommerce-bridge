@@ -55,8 +55,8 @@ use batchnz\hubspotecommercebridge\listeners\OrderListener;
  */
 class Plugin extends CraftPlugin
 {
-    public const STORE_ID = "craft-commerce-bridge";
-    public const STORE_LABEL = "Craft Commerce Bridge";
+    public const STORE_ID = "craft-commerce-bridge-v2";
+    public const STORE_LABEL = "Craft Commerce Bridge 2";
     public const STORE_ADMIN_URI = "https://naturalpaint.co.nz/admin";
 
     public const WEBHOOK_URI = null;
