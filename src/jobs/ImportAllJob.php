@@ -82,7 +82,7 @@ class ImportAllJob extends BaseJob
             );
 
             try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::PRODUCT, $productsMessage);
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::getInstance()->getSettings()->storeId, HubSpotObjectTypes::PRODUCT, $productsMessage);
             } catch (\Throwable $e) {
                 throw new Exception("Failed to import products. {$e->getMessage()}");
             }
@@ -101,7 +101,7 @@ class ImportAllJob extends BaseJob
             );
 
             try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::CONTACT, $customersMessage);
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::getInstance()->getSettings()->storeId, HubSpotObjectTypes::CONTACT, $customersMessage);
             } catch (\Throwable $e) {
                 throw new Exception("Failed to import customers. {$e->getMessage()}");
             }
@@ -120,7 +120,7 @@ class ImportAllJob extends BaseJob
             );
 
             try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::DEAL, $orderMessage);
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::getInstance()->getSettings()->storeId, HubSpotObjectTypes::DEAL, $orderMessage);
             } catch (\Throwable $e) {
                 throw new Exception("Failed to import orders. {$e->getMessage()}");
             }
@@ -139,7 +139,7 @@ class ImportAllJob extends BaseJob
             );
 
             try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, HubSpotObjectTypes::LINE_ITEM, $lineItemsMessage);
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::getInstance()->getSettings()->storeId, HubSpotObjectTypes::LINE_ITEM, $lineItemsMessage);
             } catch (\Throwable $e) {
                 throw new Exception("Failed to import line items. {$e->getMessage()}");
             }

@@ -78,7 +78,7 @@ class ActionOneJob extends BaseJob
             );
 
 //            try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::STORE_ID, $this->objectType, $message);
+                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::getInstance()->getSettings()->storeId, $this->objectType, $message);
 //            } catch (\Throwable $e) {
 //                // Don’t let an exception block the queue
 //                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
