@@ -2,20 +2,51 @@
 
 namespace batchnz\hubspotecommercebridge\models;
 
+use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Model;
+use yii\base\Exception;
 
 class LineItemSettings extends Model
 {
-    public $qty;
-    public $description;
-    public $price;
+    private const QTY = "quantity";
+    private const DESCRIPTION = "description";
+    private const PRICE = "price";
+
+    public string $qty;
+    public string $description;
+    public string $price;
 
     public function __construct()
     {
         parent::__construct();
-        $this->qty = "quantity";
-        $this->description = "description";
-        $this->price = "price";
+        $this->qty = self::QTY;
+        $this->description = self::DESCRIPTION;
+        $this->price = self::PRICE;
+    }
+
+    /**
+     * Returns a new model from the passed HubspotCommerceObject
+     *
+     * @param HubspotCommerceObject $object A Hubspot Commerce object
+     *
+     * @return self
+     * @throws Exception
+     */
+    public static function fromHubspotObject(HubspotCommerceObject $object): self
+    {
+        $settings = json_decode($object->settings);
+
+        if (json_last_error() === JSON_THROW_ON_ERROR) {
+            throw new Exception('Could not decode Product settings.');
+        }
+
+        $lineItemSettings = new static();
+
+        $lineItemSettings->qty = $settings->orderStage ?? self::QTY;
+        $lineItemSettings->description = $settings->totalPrice ?? self::DESCRIPTION;
+        $lineItemSettings->price = $settings->dealType ?? self::PRICE;
+
+        return $lineItemSettings;
     }
 
     public function rules()
@@ -24,8 +55,11 @@ class LineItemSettings extends Model
 
         return [
             [['qty', 'description', 'price'], 'required'],
-            [['description'], 'string'],
-            [['price', 'qty'], 'integer'],
+            ['qty', 'compare', 'compareValue' => self::QTY],
+            ['description', 'compare', 'compareValue' => self::DESCRIPTION],
+            ['price', 'compare', 'compareValue' => self::PRICE],
+
+            [['qty', 'description', 'price'], 'string'],
         ];
     }
 }

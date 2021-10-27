@@ -13,7 +13,10 @@ namespace batchnz\hubspotecommercebridge\controllers;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\models\LineItemSettings;
+use batchnz\hubspotecommercebridge\models\ProductSettings;
 use batchnz\hubspotecommercebridge\Plugin;
+use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use Craft;
 use craft\web\Controller;
 
@@ -60,10 +63,12 @@ class LineItemsController extends Controller
      */
     public function actionEdit(): Response
     {
-        $settings = Plugin::getInstance()->getSettings();
+        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::LINE_ITEM]);
+
+        $lineItemSettings = LineItemSettings::fromHubspotObject($hubspotObject);
 
         $variables = [
-            'settings' => $settings
+            'lineItemSettings' => $lineItemSettings
         ];
 
         return $this->renderTemplate(Plugin::HANDLE . '/mappings/line-items/_index', $variables);
@@ -76,39 +81,57 @@ class LineItemsController extends Controller
     {
         $this->requirePostRequest();
 
-        $params = Craft::$app->getRequest()->getBodyParams();
-        $data = $params['settings'];
+        $data = $this->request->getBodyParams();
 
-        $settings = Plugin::getInstance()->getSettings();
-        $settings->apiKey = $data['apiKey'] ?? $settings->apiKey;
-        $settings->storeId = $data['storeId'] ?? $settings->storeId;
-        $settings->storeLabel = $data['storeLabel'] ?? $settings->storeLabel;
-        $settings->storeAdminUri = $data['storeAdminUri'] ?? $settings->storeAdminUri;
+//        // Connection ID is a required parameter
+//        if (!empty($data['firstname']) ) {
+//            $this->setFailFlash(Plugin::t('Couldn\'t find the organisation\'s connection.'));
+//            return null;
+//        }
 
-        if (!$settings->validate()) {
-            Craft::$app->getSession()->setError(
-                'Couldn’t save settings.'
-            );
-            return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
-            );
+        $lineItemSettings = new LineItemSettings();
+        $lineItemSettings->attributes = $data;
+
+        if (! $lineItemSettings->validate()) {
+            return $this->_redirectError($lineItemSettings, $lineItemSettings->getErrors());
         }
 
-        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(
-            Plugin::getInstance(), $settings->toArray()
+        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::LINE_ITEM]);
+
+        $hubspotObject->settings = $lineItemSettings->attributes;
+
+        if (! $hubspotObject->validate()) {
+            return $this->_redirectError($lineItemSettings, $lineItemSettings->getErrors());
+        }
+
+        $hubspotObject->save();
+
+        $this->setSuccessFlash('Line Item settings saved.');
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Handles controller save errors
+     *
+     * @param LineItemSettings $lineItemSettings LineItem Settings model
+     *
+     * @return void
+     */
+    private function _redirectError(
+        LineItemSettings $lineItemSettings,
+        array $errors = []
+    ) {
+        Craft::error(
+            'Failed to save Line Item settings with validation errors: '
+            . json_encode($errors)
         );
 
-        if (!$pluginSettingsSaved) {
-            Craft::$app->getSession()->setError(
-                'Couldn’t save settings.'
-            );
-            return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
-            );
-        }
+        $this->setFailFlash('Couldn’t save Line Item settings.');
 
-        Craft::$app->getSession()->setNotice('Settings saved.');
+        Craft::$app
+            ->getUrlManager()
+            ->setRouteParams(['lineItemSettings' => $lineItemSettings]);
 
-        return $this->redirectToPostedUrl();
+        return null;
     }
 }
