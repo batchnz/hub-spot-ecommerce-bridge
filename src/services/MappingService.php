@@ -20,7 +20,6 @@ class MappingService extends Component
         return ([
             "externalPropertyName" => $externalPropertyName,
             "hubspotPropertyName" => $hubspotPropertyName,
-            "dataType" => $dataType,
         ]);
     }
 
@@ -39,6 +38,10 @@ class MappingService extends Component
                         $this->createPropertyMapping("email", "email", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("firstName", "firstname", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("lastName", "lastname", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("phoneNumber", "phone", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("address", "address", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("city", "city", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("business", "company", HubSpotDataTypes::STRING),
                     ]),
 
 
@@ -47,12 +50,15 @@ class MappingService extends Component
                         $this->createPropertyMapping("totalPrice", "amount", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("dateOrdered", "createdate", HubSpotDataTypes::DATETIME),
                         $this->createPropertyMapping("orderStage", "dealstage", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("orderShortNumber", "dealname", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("dealType", "dealtype", HubSpotDataTypes::STRING),
+                        $this->createPropertyMapping("orderNumber", "ip__ecomm_bridge__order_number", HubSpotDataTypes::STRING),
                     ]),
 
 
                 HubSpotObjectTypes::PRODUCT =>
                     $this->createObjectMapping([
-                        $this->createPropertyMapping("price", "price", HubSpotDataTypes::NUMBER),
+                        $this->createPropertyMapping("price", "price", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("sku", "hs_sku", HubSpotDataTypes::STRING),
                         $this->createPropertyMapping("title", "name", HubSpotDataTypes::STRING),
                     ]),
