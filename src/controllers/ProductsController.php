@@ -13,7 +13,10 @@ namespace batchnz\hubspotecommercebridge\controllers;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\models\OrderSettings;
+use batchnz\hubspotecommercebridge\models\ProductSettings;
 use batchnz\hubspotecommercebridge\Plugin;
+use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use Craft;
 use craft\web\Controller;
 
@@ -58,10 +61,12 @@ class ProductsController extends Controller
      */
     public function actionEdit(): Response
     {
-        $settings = Plugin::getInstance()->getSettings();
+        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::PRODUCT]);
+
+        $productSettings = ProductSettings::fromHubspotObject($hubspotObject);
 
         $variables = [
-            'settings' => $settings
+            'productSettings' => $productSettings
         ];
 
         return $this->renderTemplate(Plugin::HANDLE . '/mappings/products/_index', $variables);
@@ -74,39 +79,57 @@ class ProductsController extends Controller
     {
         $this->requirePostRequest();
 
-        $params = Craft::$app->getRequest()->getBodyParams();
-        $data = $params['settings'];
+        $data = $this->request->getBodyParams();
 
-        $settings = Plugin::getInstance()->getSettings();
-        $settings->apiKey = $data['apiKey'] ?? $settings->apiKey;
-        $settings->storeId = $data['storeId'] ?? $settings->storeId;
-        $settings->storeLabel = $data['storeLabel'] ?? $settings->storeLabel;
-        $settings->storeAdminUri = $data['storeAdminUri'] ?? $settings->storeAdminUri;
+//        // Connection ID is a required parameter
+//        if (!empty($data['firstname']) ) {
+//            $this->setFailFlash(Plugin::t('Couldn\'t find the organisation\'s connection.'));
+//            return null;
+//        }
 
-        if (!$settings->validate()) {
-            Craft::$app->getSession()->setError(
-                'Couldn’t save settings.'
-            );
-            return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
-            );
+        $productSettings = new ProductSettings();
+        $productSettings->attributes = $data;
+
+        if (! $productSettings->validate()) {
+            return $this->_redirectError($productSettings, $productSettings->getErrors());
         }
 
-        $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(
-            Plugin::getInstance(), $settings->toArray()
+        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::PRODUCT]);
+
+        $hubspotObject->settings = $productSettings->attributes;
+
+        if (! $hubspotObject->validate()) {
+            return $this->_redirectError($productSettings, $productSettings->getErrors());
+        }
+
+        $hubspotObject->save();
+
+        $this->setSuccessFlash('Product settings saved.');
+        return $this->redirectToPostedUrl();
+    }
+
+    /**
+     * Handles controller save errors
+     *
+     * @param ProductSettings $productSettings Product Settings model
+     *
+     * @return void
+     */
+    private function _redirectError(
+        ProductSettings $productSettings,
+        array $errors = []
+    ) {
+        Craft::error(
+            'Failed to save Product settings with validation errors: '
+            . json_encode($errors)
         );
 
-        if (!$pluginSettingsSaved) {
-            Craft::$app->getSession()->setError(
-                'Couldn’t save settings.'
-            );
-            return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
-            );
-        }
+        $this->setFailFlash('Couldn’t save Product settings.');
 
-        Craft::$app->getSession()->setNotice('Settings saved.');
+        Craft::$app
+            ->getUrlManager()
+            ->setRouteParams(['productSettings' => $productSettings]);
 
-        return $this->redirectToPostedUrl();
+        return null;
     }
 }

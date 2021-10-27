@@ -6,21 +6,41 @@
 
     <h2>{{ "Products" }}</h2>
 
-    <p>{{ "Lorem Ipsum Dolor Sit Amet" }}</p>
+    <p>{{ "Set the mappings for Product data between Craft Commerce and HubSpot" }}</p>
 
     <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
-        <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/mappings/save">
-        {{ redirectInput('hub-spot-ecommerce-bridge/mappings/customers') }}
+        <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/products/save-settings">
+        {{ redirectInput('hub-spot-ecommerce-bridge/mappings/products') }}
         {{ csrfInput() }}
 
+        {{ forms.textField({
+            label: 'SKU',
+            id: 'sku',
+            name: 'sku',
+            placeholder: productSettings.sku,
+            value: productSettings.sku,
+            errors: productSettings.getErrors('sku'),
+            disabled: true,
+        }) }}
 
         {{ forms.textField({
-            label: 'Attention',
-            id: 'attention',
-            name: 'attention',
-            placeholder: "hello world",
-            value: "hello world",
-            errors: "hello world",
+            label: 'Price',
+            id: 'price',
+            name: 'price',
+            placeholder: productSettings.price,
+            value: productSettings.price,
+            errors: productSettings.getErrors('price'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Title',
+            id: 'title',
+            name: 'title',
+            placeholder: productSettings.title,
+            value: productSettings.title,
+            errors: productSettings.getErrors('title'),
+            disabled: true,
         }) }}
 
         <input type="submit" class="btn submit" value="{{ 'Save' }}">
