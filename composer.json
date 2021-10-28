@@ -8,7 +8,7 @@
         "cms",
         "craftcms",
         "craft-plugin",
-        "hubspot ecommerce bridge"
+        "hubspot commerce"
     ],
     "support": {
         "docs": "https://github.com/batchnz/hub-spot-ecommerce-bridge/blob/master/README.md",
@@ -31,7 +31,7 @@
         }
     },
     "extra": {
-        "name": "HubSpot Ecommerce Bridge",
+        "name": "HubSpot Commerce",
         "handle": "hub-spot-ecommerce-bridge",
         "developer": "Daniel Siemers",
         "developerUrl": "https://www.batch.nz/",
