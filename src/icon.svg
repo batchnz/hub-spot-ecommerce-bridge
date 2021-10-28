@@ -1,15 +1,36 @@
-<svg id="hs-nav-v4--logo" viewBox="0 0 242.04 257" class="nav-logo logo">
-    <defs>
-        <clipPath id="a">
-            <path class="cls-1" fill="none" d="M42.87 46.9h156.42v163.35H42.87z"/>
-        </clipPath>
-        <style>
-            #hs-nav-v4--logo .cls-2{clip-path:url(#a)}
-        </style>
-    </defs>
-    <g class="cls-2">
-        <g class="cls-2">
-            <path class="cls-3" d="M162.79 101.25V82a14.84 14.84 0 0 0 8.56-13.38v-.45a14.87 14.87 0 0 0-14.83-14.83h-.45a14.87 14.87 0 0 0-14.83 14.83v.45A14.84 14.84 0 0 0 149.8 82v19.29a42.06 42.06 0 0 0-20 8.8L76.86 68.86a16.89 16.89 0 1 0-7.91 10.29L121 119.67a42.18 42.18 0 0 0 .65 47.56l-15.84 15.84a13.6 13.6 0 0 0-3.93-.64 13.75 13.75 0 1 0 13.75 13.75 13.56 13.56 0 0 0-.64-3.93l15.67-15.67a42.25 42.25 0 1 0 32.1-75.33m-6.49 63.42A21.68 21.68 0 1 1 178 143a21.68 21.68 0 0 1-21.68 21.68" fill="#ff7a59"/>
-        </g>
-    </g>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.2.1, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="hs-nav-v4--logo" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px"
+	 y="0px" viewBox="0 0 156.4 163.4" style="enable-background:new 0 0 156.4 163.4;" xml:space="preserve">
+<style type="text/css">
+	.st0{clip-path:url(#SVGID_2_);}
+	.st1{clip-path:url(#SVGID_4_);}
+	.st2{fill:#FF7A59;}
+</style>
+<g>
+	<defs>
+		<rect id="SVGID_1_" width="156.4" height="163.4"/>
+	</defs>
+	<clipPath id="SVGID_2_">
+		<use xlink:href="#SVGID_1_"  style="overflow:visible;"/>
+	</clipPath>
+	<g class="st0">
+		<g>
+			<defs>
+				<rect id="SVGID_3_" width="156.4" height="163.4"/>
+			</defs>
+			<clipPath id="SVGID_4_">
+				<use xlink:href="#SVGID_3_"  style="overflow:visible;"/>
+			</clipPath>
+			<g class="st1">
+				<path class="st2" d="M119.9,54.3V35.1c5.2-2.4,8.5-7.6,8.6-13.4v-0.4c0-8.2-6.6-14.8-14.8-14.8h-0.4c-8.2,0-14.8,6.6-14.8,14.8
+					v0.4c0,5.7,3.4,11,8.6,13.4v19.3c-7.3,1.1-14.2,4.2-20,8.8L34,22c2.4-9-2.9-18.3-12-20.7S3.8,4.2,1.4,13.2s2.9,18.3,12,20.7
+					c4.3,1.2,8.9,0.6,12.8-1.7l52.1,40.5c-9.6,14.5-9.3,33.4,0.6,47.6l-15.8,15.8c-1.3-0.4-2.6-0.6-3.9-0.6
+					c-7.6,0-13.8,6.2-13.8,13.8c0,7.6,6.2,13.8,13.8,13.8s13.7-6.2,13.7-13.8l0,0c0-1.3-0.2-2.7-0.6-3.9l15.7-15.7
+					c18.5,14.2,45.1,10.6,59.2-7.9s10.6-45.1-7.9-59.2C133.5,58.2,126.9,55.4,119.9,54.3 M113.4,117.8c-12,0-21.7-9.8-21.6-21.7
+					c0-12,9.8-21.7,21.7-21.6c12,0,21.6,9.7,21.6,21.7C135.1,108.1,125.4,117.8,113.4,117.8"/>
+			</g>
+		</g>
+	</g>
+</g>
 </svg>
