@@ -11,7 +11,6 @@
 
 namespace batchnz\hubspotecommercebridge\controllers;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\OrderSettings;
 use batchnz\hubspotecommercebridge\Plugin;
@@ -19,9 +18,6 @@ use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use Craft;
 use craft\web\Controller;
 
-use SevenShores\Hubspot\Factory as HubSpotFactory;
-use yii\base\Exception;
-use yii\web\HttpException;
 use yii\web\Response;
 
 /**
@@ -36,7 +32,6 @@ use yii\web\Response;
  */
 class OrdersController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 

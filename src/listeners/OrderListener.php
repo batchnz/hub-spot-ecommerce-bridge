@@ -17,7 +17,6 @@ use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\jobs\ActionOneJob;
 use Craft;
 use craft\events\ModelEvent;
-use DateTime;
 use yii\base\Event;
 
 class OrderListener

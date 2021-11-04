@@ -2,7 +2,6 @@
 
 namespace batchnz\hubspotecommercebridge\enums;
 
-
 /**
  * Class HubSpotDealStages
  * @package batchnz\hubspotecommercebridge\enums

@@ -10,7 +10,6 @@ use Craft;
 use craft\base\Component;
 use craft\db\Query;
 use craft\db\Table;
-use yii\base\Exception;
 
 /**
  * Class ImportService
@@ -74,7 +73,7 @@ class ImportService extends Component
      * Fetches all of the data required for Customer import from the database
      * @return array
      */
-    public function fetchCustomers() :array
+    public function fetchCustomers(): array
     {
         $query = new Query();
         $query->select('
@@ -136,7 +135,7 @@ class ImportService extends Component
 
         //TODO link the properties imported to the properties set in settings
         return ($email || $firstName || $lastName) ? (
-        [
+            [
             "action" => $action,
             "changedAt" => $milliseconds,
             "externalObjectId" => $customer['customerId'],
@@ -157,7 +156,7 @@ class ImportService extends Component
      * Fetches all of the data required for Order import from the database
      * @return array
      */
-    public function fetchOrders() :array
+    public function fetchOrders(): array
     {
         $query = new Query();
         $query->select('
@@ -212,7 +211,7 @@ class ImportService extends Component
      * Fetches all of the data required for LineItem import from the database
      * @return array
      */
-    public function fetchLineItems() :array
+    public function fetchLineItems(): array
     {
         $query = new Query();
         $query->select('
@@ -243,7 +242,7 @@ class ImportService extends Component
 
         //TODO link the properties imported to the properties set in settings
         return ($lineItem['orderId'] && $lineItem['sku']) ? (
-        [
+            [
             "action" => $action,
             "changedAt" => $milliseconds,
             "externalObjectId" => $lineItem['lineItemId'],

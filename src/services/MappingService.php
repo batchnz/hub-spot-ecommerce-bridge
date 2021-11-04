@@ -2,16 +2,13 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
-use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use yii\base\Exception;
 
 class MappingService extends Component
 {
-
     public function createObjectMapping(string $objectType): array
     {
         $hubspotObject = HubspotCommerceObject::findOne(['objectType' => $objectType]);
@@ -45,7 +42,7 @@ class MappingService extends Component
      * Creates the mappings settings for Craft Commerce objects to HubSpot objects
      * @return array
      */
-    public function createSettings() : array
+    public function createSettings(): array
     {
         return ([
             "enabled" => true,

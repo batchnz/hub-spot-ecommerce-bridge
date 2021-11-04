@@ -11,11 +11,9 @@
 
 namespace batchnz\hubspotecommercebridge;
 
-
 use batchnz\hubspotecommercebridge\listeners\CustomerListener;
 use batchnz\hubspotecommercebridge\listeners\LineItemListener;
 use batchnz\hubspotecommercebridge\listeners\ProductListener;
-use batchnz\hubspotecommercebridge\listeners\VariantListener;
 use batchnz\hubspotecommercebridge\services\ImportService;
 use batchnz\hubspotecommercebridge\services\MappingService;
 use batchnz\hubspotecommercebridge\models\Settings;
@@ -27,12 +25,10 @@ use craft\commerce\elements\Order;
 use craft\commerce\elements\Variant;
 use craft\commerce\services\Customers;
 use craft\commerce\services\LineItems;
-use craft\events\RegisterCpNavItemsEvent;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
 use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
-use modules\core\services\PalettesService;
 use SevenShores\Hubspot\Factory as HubSpotFactory;
 use yii\base\Event;
 
@@ -314,5 +310,4 @@ class Plugin extends CraftPlugin
     {
         return new Settings();
     }
-
 }

@@ -17,7 +17,6 @@ use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\queue\BaseJob;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
 use yii\base\Exception;
 
 /**
@@ -70,7 +69,7 @@ class ImportAllJob extends BaseJob
         $hubspot = Plugin::getInstance()->getHubSpot();
 
         //Import Products
-        foreach($productsMessages as $productsMessage) {
+        foreach ($productsMessages as $productsMessage) {
             $completedMessages++;
             $this->setProgress(
                 $queue,
@@ -89,7 +88,7 @@ class ImportAllJob extends BaseJob
         }
 
         //Import Customers
-        foreach($customersMessages as $customersMessage) {
+        foreach ($customersMessages as $customersMessage) {
             $completedMessages++;
             $this->setProgress(
                 $queue,
@@ -108,7 +107,7 @@ class ImportAllJob extends BaseJob
         }
 
         //Import Orders
-        foreach($orderMessages as $orderMessage) {
+        foreach ($orderMessages as $orderMessage) {
             $completedMessages++;
             $this->setProgress(
                 $queue,
@@ -127,7 +126,7 @@ class ImportAllJob extends BaseJob
         }
 
         //Import LineItems
-        foreach($lineItemsMessages as $lineItemsMessage) {
+        foreach ($lineItemsMessages as $lineItemsMessage) {
             $completedMessages++;
             $this->setProgress(
                 $queue,

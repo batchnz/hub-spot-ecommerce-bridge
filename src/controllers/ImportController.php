@@ -15,11 +15,7 @@ use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
-use craft\commerce\elements\Product;
-use craft\db\Table;
 use craft\web\Controller;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
-use craft\db\Query;
 
 /**
  * ImportData Controller
@@ -79,7 +75,6 @@ class ImportController extends Controller
      */
     public function actionDeleteAll()
     {
-
         $importService = Plugin::getInstance()->getImport();
 
         $deleted = $importService->deleteAll();
@@ -89,7 +84,6 @@ class ImportController extends Controller
 
     public function actionCheckSync()
     {
-
         $hubspot = Plugin::getInstance()->getHubSpot();
 
         $res = $hubspot->ecommerceBridge()->checkSyncStatus(Plugin::getInstance()->getSettings()->storeId, HubSpotObjectTypes::DEAL, 35933);

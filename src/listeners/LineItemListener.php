@@ -15,12 +15,8 @@ namespace batchnz\hubspotecommercebridge\listeners;
 use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\jobs\ActionOneJob;
-use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
 use craft\commerce\events\LineItemEvent;
-use craft\events\ModelEvent;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
-use yii\base\Event;
 
 class LineItemListener
 {

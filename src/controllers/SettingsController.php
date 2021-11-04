@@ -11,15 +11,10 @@
 
 namespace batchnz\hubspotecommercebridge\controllers;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotDataTypes;
-use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
 use craft\web\Controller;
 
-use SevenShores\Hubspot\Factory as HubSpotFactory;
-use yii\base\Exception;
-use yii\web\HttpException;
 use yii\web\Response;
 
 /**
@@ -44,7 +39,6 @@ use yii\web\Response;
  */
 class SettingsController extends Controller
 {
-
     // Protected Properties
     // =========================================================================
 
@@ -100,12 +94,14 @@ class SettingsController extends Controller
                 'Couldn’t save settings.'
             );
             return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
+                Plugin::HANDLE . '/settings/_index',
+                compact('settings')
             );
         }
 
         $pluginSettingsSaved = Craft::$app->getPlugins()->savePluginSettings(
-            Plugin::getInstance(), $settings->toArray()
+            Plugin::getInstance(),
+            $settings->toArray()
         );
 
         if (!$pluginSettingsSaved) {
@@ -113,7 +109,8 @@ class SettingsController extends Controller
                 'Couldn’t save settings.'
             );
             return $this->renderTemplate(
-                Plugin::HANDLE . '/settings/_index', compact('settings')
+                Plugin::HANDLE . '/settings/_index',
+                compact('settings')
             );
         }
 

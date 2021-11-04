@@ -7,7 +7,6 @@ use batchnz\hubspotecommercebridge\models\CustomerSettings;
 use batchnz\hubspotecommercebridge\models\LineItemSettings;
 use batchnz\hubspotecommercebridge\models\OrderSettings;
 use batchnz\hubspotecommercebridge\models\ProductSettings;
-use Craft;
 use craft\db\Migration;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 
@@ -23,7 +22,8 @@ class Install extends Migration
     {
         if (!$this->_tableExists(HubspotCommerceObject::tableName())) {
             $this->createTable(
-                HubspotCommerceObject::tableName(), [
+                HubspotCommerceObject::tableName(),
+                [
                     'id' => $this->primaryKey(),
                     'objectType' => $this->string(40)->notNull(),
                     'settings' => $this->longText()->notNull(),

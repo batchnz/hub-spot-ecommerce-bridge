@@ -11,13 +11,10 @@
 
 namespace batchnz\hubspotecommercebridge\jobs;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
-use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\queue\BaseJob;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
 
 /**
  *
@@ -41,7 +38,6 @@ use SevenShores\Hubspot\Factory as HubSpotFactory;
  */
 class ActionOneJob extends BaseJob
 {
-
     public $objectType;
 
     public $object;
@@ -66,7 +62,7 @@ class ActionOneJob extends BaseJob
         $completedMessages = 0;
 
         //Import Object
-        foreach($messages as $message) {
+        foreach ($messages as $message) {
             $completedMessages++;
             $this->setProgress(
                 $queue,
@@ -78,13 +74,12 @@ class ActionOneJob extends BaseJob
             );
 
 //            try {
-                $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::getInstance()->getSettings()->storeId, $this->objectType, $message);
+            $hubspot->ecommerceBridge()->sendSyncMessages(Plugin::getInstance()->getSettings()->storeId, $this->objectType, $message);
 //            } catch (\Throwable $e) {
 //                // Don’t let an exception block the queue
 //                Craft::warning("Something went wrong: {$e->getMessage()}", __METHOD__);
 //            }
         }
-
     }
 
     // Protected Methods
