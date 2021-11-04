@@ -18,6 +18,7 @@ use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use Craft;
 use craft\web\Controller;
 
+use yii\base\Exception;
 use yii\web\Response;
 
 /**
@@ -54,12 +55,21 @@ class OrdersController extends Controller
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store
      * @return Response
+     * @throws Exception
      */
     public function actionEdit(): Response
     {
         $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::DEAL]);
 
-        $orderSettings = OrderSettings::fromHubspotObject($hubspotObject);
+        try {
+            if (!$hubspotObject) {
+                throw new Exception();
+            }
+            $orderSettings = OrderSettings::fromHubspotObject($hubspotObject);
+        } catch (Exception $e) {
+            Craft::error('Could not get Order Item settings from DEAL HubSpot Object.');
+            $orderSettings = new OrderSettings();
+        }
 
         $variables = [
             'orderSettings' => $orderSettings

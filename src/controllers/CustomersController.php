@@ -17,6 +17,7 @@ use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use Craft;
 use craft\web\Controller;
+use yii\base\Exception;
 use yii\web\Response;
 
 /**
@@ -63,9 +64,13 @@ class CustomersController extends Controller
     {
         $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::CONTACT]);
 
-        if ($hubspotObject) {
+        try {
+            if (!$hubspotObject) {
+                throw new Exception();
+            }
             $customerSettings = CustomerSettings::fromHubspotObject($hubspotObject);
-        } else {
+        } catch (Exception $e) {
+            Craft::error('Could not get Customer settings from CONTACT HubSpot Object.');
             $customerSettings = new CustomerSettings();
         }
 

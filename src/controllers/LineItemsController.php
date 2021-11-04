@@ -18,6 +18,7 @@ use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use Craft;
 use craft\web\Controller;
 
+use yii\base\Exception;
 use yii\web\Response;
 
 /**
@@ -58,14 +59,19 @@ class LineItemsController extends Controller
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store
      * @return Response
+     * @throws Exception
      */
     public function actionEdit(): Response
     {
         $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::LINE_ITEM]);
 
-        if ($hubspotObject) {
+        try {
+            if (!$hubspotObject) {
+                throw new Exception();
+            }
             $lineItemSettings = LineItemSettings::fromHubspotObject($hubspotObject);
-        } else {
+        } catch (Exception $e) {
+            Craft::error('Could not get Line Item settings from LINE_ITEM HubSpot Object.');
             $lineItemSettings = new LineItemSettings();
         }
 
