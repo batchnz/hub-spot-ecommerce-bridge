@@ -298,7 +298,7 @@ class ImportService extends Component
      * and uses to import the necessary data and associations into HubSpot. The import will be
      * sent to the queue as a job.
      */
-    public function importAll()
+    public function importAll(): string
     {
         $queue = Craft::$app->getQueue();
 
@@ -312,7 +312,7 @@ class ImportService extends Component
      * and uses to import the necessary data and associations into HubSpot. The import will be
      * sent to the queue as a job.
      */
-    public function deleteAll()
+    public function deleteAll(): string
     {
         $queue = Craft::$app->getQueue();
 
@@ -321,7 +321,7 @@ class ImportService extends Component
         return "Delete All Craft Commerce Data from HubSpot has been queued with JobID " . $jobId;
     }
 
-    public function normalizeObjectType($objectType)
+    public function normalizeObjectType($objectType): string
     {
         $value = ucwords(str_replace(['-', '_'], ' ', $objectType));
 

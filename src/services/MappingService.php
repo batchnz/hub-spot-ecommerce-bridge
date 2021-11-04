@@ -5,19 +5,17 @@ namespace batchnz\hubspotecommercebridge\services;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
-use yii\base\Exception;
 
 class MappingService extends Component
 {
+    /**
+     * @throws \JsonException
+     */
     public function createObjectMapping(string $objectType): array
     {
         $hubspotObject = HubspotCommerceObject::findOne(['objectType' => $objectType]);
 
-        $settings = json_decode($hubspotObject->settings);
-
-        if (json_last_error() === JSON_THROW_ON_ERROR) {
-            throw new Exception('Could not decode Mapping settings.');
-        }
+        $settings = json_decode($hubspotObject->settings, false, 512, JSON_THROW_ON_ERROR);
 
         $properties = [];
 
@@ -41,6 +39,7 @@ class MappingService extends Component
     /**
      * Creates the mappings settings for Craft Commerce objects to HubSpot objects
      * @return array
+     * @throws \JsonException
      */
     public function createSettings(): array
     {
@@ -53,7 +52,6 @@ class MappingService extends Component
 
                 HubSpotObjectTypes::DEAL =>
                     $this->createObjectMapping(HubSpotObjectTypes::DEAL),
-
 
                 HubSpotObjectTypes::PRODUCT =>
                     $this->createObjectMapping(HubSpotObjectTypes::PRODUCT),
