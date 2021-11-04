@@ -277,7 +277,7 @@ class ImportService extends Component
             throw new \Exception('method ' . $functionName . ' does not exist');
         }
 
-        $messages = array_map([self::class, $functionName], $objects, [$action]);
+        $messages = array_map([self::class, $functionName], $objects, array_fill(0, count($objects), $action));
 
         //Removes any empty arrays if there are any
         $messages = array_filter($messages);
@@ -291,7 +291,6 @@ class ImportService extends Component
         //Batches need to be made with the max batch size
         return array_chunk($messages, self::MAX_BATCH_SIZE, false);
     }
-
 
     /**
      * Handle importing of all data. Queries the for all of the necessary datatypes
