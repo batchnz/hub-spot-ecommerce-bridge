@@ -16,6 +16,7 @@ use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\web\Controller;
+use yii\web\Response;
 
 /**
  * ImportData Controller
@@ -52,6 +53,10 @@ class ImportController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @throws \yii\web\ForbiddenHttpException
+     * @throws \yii\base\InvalidConfigException
+     */
     public function init()
     {
         $this->requireAdmin();
@@ -61,7 +66,7 @@ class ImportController extends Controller
     /**
      * Handles incoming request to import all data
      */
-    public function actionIndex()
+    public function actionIndex(): Response
     {
         $importService = Plugin::getInstance()->getImport();
 
@@ -73,7 +78,7 @@ class ImportController extends Controller
     /**
      * Handles incoming request to delete all data
      */
-    public function actionDeleteAll()
+    public function actionDeleteAll(): Response
     {
         $importService = Plugin::getInstance()->getImport();
 
@@ -82,7 +87,7 @@ class ImportController extends Controller
         return $this->asJson($deleted);
     }
 
-    public function actionCheckSync()
+    public function actionCheckSync(): Response
     {
         $hubspot = Plugin::getInstance()->getHubSpot();
 
