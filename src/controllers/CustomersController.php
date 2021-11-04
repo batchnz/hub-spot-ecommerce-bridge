@@ -77,7 +77,7 @@ class CustomersController extends Controller
     }
 
     /**
-     * @return Response|void
+     * @return Response|null|void
      * @throws \yii\web\BadRequestHttpException
      * @throws \yii\base\InvalidConfigException
      * @throws \SevenShores\Hubspot\Exceptions\BadRequest
@@ -123,14 +123,15 @@ class CustomersController extends Controller
      * @param CustomerSettings $customerSettings Customer Settings model
      *
      * @return void
+     * @throws \JsonException
      */
     private function _redirectError(
         CustomerSettings $customerSettings,
         array $errors = []
-    ) {
+    ): void {
         Craft::error(
             'Failed to save Customer settings with validation errors: '
-            . json_encode($errors)
+            . json_encode($errors, JSON_THROW_ON_ERROR)
         );
 
         $this->setFailFlash('Couldn’t save Customer settings.');
@@ -138,7 +139,5 @@ class CustomersController extends Controller
         Craft::$app
             ->getUrlManager()
             ->setRouteParams(['customerSettings' => $customerSettings]);
-
-        return null;
     }
 }

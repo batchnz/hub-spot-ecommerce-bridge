@@ -67,9 +67,12 @@ class ProductsController extends Controller
     }
 
     /**
-     * @return Response|null
+     * @return Response|null|void
+     * @throws \yii\web\BadRequestHttpException
+     * @throws \yii\base\InvalidConfigException
+     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
-    public function actionSaveSettings()
+    public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
 
@@ -88,25 +91,15 @@ class ProductsController extends Controller
             return $this->_redirectError($productSettings, $productSettings->getErrors());
         }
 
-        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::PRODUCT]);
+        $savedDb = Plugin::getInstance()->getSettingsService()->saveDb($productSettings, HubSpotObjectTypes::PRODUCT);
 
-        $hubspotObject->settings = $productSettings->attributes;
-
-        if (! $hubspotObject->validate()) {
+        if (!$savedDb) {
             return $this->_redirectError($productSettings, $productSettings->getErrors());
         }
 
-        $hubspotObject->save();
+        $savedApi = Plugin::getInstance()->getSettingsService()->saveApi();
 
-        $hubspotApi = Plugin::getInstance()->getHubSpot();
-
-        $mappingService = Plugin::getInstance()->getMapping();
-        $settingsUpsert = $mappingService->createSettings();
-
-        $apiSettings = $hubspotApi->ecommerceBridge()->upsertSettings($settingsUpsert);
-
-        //TODO more advanced checks to see if the settings went through
-        if ($apiSettings->mappings) {
+        if ($savedApi) {
             $this->setSuccessFlash('Product settings saved.');
         } else {
             $this->setFailFlash('Error while connecting to the HubSpot API.');
@@ -121,14 +114,15 @@ class ProductsController extends Controller
      * @param ProductSettings $productSettings Product Settings model
      *
      * @return void
+     * @throws \JsonException
      */
     private function _redirectError(
         ProductSettings $productSettings,
         array $errors = []
-    ) {
+    ): void {
         Craft::error(
             'Failed to save Product settings with validation errors: '
-            . json_encode($errors)
+            . json_encode($errors, JSON_THROW_ON_ERROR)
         );
 
         $this->setFailFlash('Couldn’t save Product settings.');
@@ -136,7 +130,5 @@ class ProductsController extends Controller
         Craft::$app
             ->getUrlManager()
             ->setRouteParams(['productSettings' => $productSettings]);
-
-        return null;
     }
 }

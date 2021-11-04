@@ -45,6 +45,10 @@ class LineItemsController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\web\ForbiddenHttpException
+     */
     public function init()
     {
         $this->requireAdmin();
@@ -59,7 +63,11 @@ class LineItemsController extends Controller
     {
         $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::LINE_ITEM]);
 
-        $lineItemSettings = LineItemSettings::fromHubspotObject($hubspotObject);
+        if ($hubspotObject) {
+            $lineItemSettings = LineItemSettings::fromHubspotObject($hubspotObject);
+        } else {
+            $lineItemSettings = new LineItemSettings();
+        }
 
         $variables = [
             'lineItemSettings' => $lineItemSettings
@@ -69,9 +77,12 @@ class LineItemsController extends Controller
     }
 
     /**
-     * @return Response|null
+     * @return Response|null|void
+     * @throws \yii\web\BadRequestHttpException
+     * @throws \yii\base\InvalidConfigException
+     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
-    public function actionSaveSettings()
+    public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
 
@@ -90,25 +101,15 @@ class LineItemsController extends Controller
             return $this->_redirectError($lineItemSettings, $lineItemSettings->getErrors());
         }
 
-        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::LINE_ITEM]);
+        $savedDb = Plugin::getInstance()->getSettingsService()->saveDb($lineItemSettings, HubSpotObjectTypes::LINE_ITEM);
 
-        $hubspotObject->settings = $lineItemSettings->attributes;
-
-        if (! $hubspotObject->validate()) {
+        if (!$savedDb) {
             return $this->_redirectError($lineItemSettings, $lineItemSettings->getErrors());
         }
 
-        $hubspotObject->save();
+        $savedApi = Plugin::getInstance()->getSettingsService()->saveApi();
 
-        $hubspotApi = Plugin::getInstance()->getHubSpot();
-
-        $mappingService = Plugin::getInstance()->getMapping();
-        $settingsUpsert = $mappingService->createSettings();
-
-        $apiSettings = $hubspotApi->ecommerceBridge()->upsertSettings($settingsUpsert);
-
-        //TODO more advanced checks to see if the settings went through
-        if ($apiSettings->mappings) {
+        if ($savedApi) {
             $this->setSuccessFlash('Line Item settings saved.');
         } else {
             $this->setFailFlash('Error while connecting to the HubSpot API.');
@@ -123,14 +124,15 @@ class LineItemsController extends Controller
      * @param LineItemSettings $lineItemSettings LineItem Settings model
      *
      * @return void
+     * @throws \JsonException
      */
     private function _redirectError(
         LineItemSettings $lineItemSettings,
         array $errors = []
-    ) {
+    ): void {
         Craft::error(
             'Failed to save Line Item settings with validation errors: '
-            . json_encode($errors)
+            . json_encode($errors, JSON_THROW_ON_ERROR)
         );
 
         $this->setFailFlash('Couldn’t save Line Item settings.');
@@ -138,7 +140,5 @@ class LineItemsController extends Controller
         Craft::$app
             ->getUrlManager()
             ->setRouteParams(['lineItemSettings' => $lineItemSettings]);
-
-        return null;
     }
 }
