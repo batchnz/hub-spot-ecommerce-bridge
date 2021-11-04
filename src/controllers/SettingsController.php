@@ -52,6 +52,10 @@ class SettingsController extends Controller
     // Public Methods
     // =========================================================================
 
+    /**
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\web\ForbiddenHttpException
+     */
     public function init()
     {
         $this->requireAdmin();
@@ -75,8 +79,10 @@ class SettingsController extends Controller
 
     /**
      * @return Response|null
+     * @throws \yii\web\BadRequestHttpException
+     * @throws \craft\errors\MissingComponentException
      */
-    public function actionSaveSettings()
+    public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
 
