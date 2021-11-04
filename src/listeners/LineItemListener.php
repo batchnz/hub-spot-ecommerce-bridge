@@ -20,7 +20,7 @@ use craft\commerce\events\LineItemEvent;
 
 class LineItemListener
 {
-    public static function upsert(LineItemEvent $event)
+    public static function upsert(LineItemEvent $event): void
     {
         $lineItem = self::modelLineItem($event->lineItem);
 

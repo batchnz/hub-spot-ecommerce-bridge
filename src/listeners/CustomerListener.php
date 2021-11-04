@@ -21,7 +21,7 @@ use craft\commerce\events\LineItemEvent;
 
 class CustomerListener
 {
-    public static function upsert(CustomerEvent $event)
+    public static function upsert(CustomerEvent $event): void
     {
         $customer = self::modelCustomer($event->customer);
 

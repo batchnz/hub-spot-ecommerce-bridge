@@ -21,7 +21,7 @@ use yii\base\Event;
 
 class OrderListener
 {
-    public static function upsert(ModelEvent $event)
+    public static function upsert(ModelEvent $event): void
     {
         $order = self::modelOrder($event->sender);
         $queue = Craft::$app->getQueue();

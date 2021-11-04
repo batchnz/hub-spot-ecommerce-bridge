@@ -38,17 +38,18 @@ use craft\queue\BaseJob;
  */
 class ActionOneJob extends BaseJob
 {
-    public $objectType;
+    public string $objectType;
 
-    public $object;
+    public array $object;
 
-    public $action;
+    public string $action;
 
     // Public Methods
     // =========================================================================
 
     /**
      * When the Queue is ready to run your job, it will call this method.
+     * @throws \Exception
      */
     public function execute($queue)
     {
