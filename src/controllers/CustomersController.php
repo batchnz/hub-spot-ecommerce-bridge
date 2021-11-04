@@ -44,7 +44,11 @@ class CustomersController extends Controller
     // Public Methods
     // =========================================================================
 
-    public function init()
+    /**
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\web\ForbiddenHttpException
+     */
+    public function init(): void
     {
         $this->requireAdmin();
         parent::init();
@@ -53,12 +57,17 @@ class CustomersController extends Controller
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store
      * @return Response
+     * @throws \yii\base\Exception
      */
     public function actionEdit(): Response
     {
         $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::CONTACT]);
 
-        $customerSettings = CustomerSettings::fromHubspotObject($hubspotObject);
+        if ($hubspotObject) {
+            $customerSettings = CustomerSettings::fromHubspotObject($hubspotObject);
+        } else {
+            $customerSettings = new CustomerSettings();
+        }
 
         $variables = [
             'customerSettings' => $customerSettings
@@ -68,9 +77,12 @@ class CustomersController extends Controller
     }
 
     /**
-     * @return Response|null
+     * @return Response|void
+     * @throws \yii\web\BadRequestHttpException
+     * @throws \yii\base\InvalidConfigException
+     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
-    public function actionSaveSettings()
+    public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
 
@@ -84,30 +96,19 @@ class CustomersController extends Controller
 
         $customerSettings = new CustomerSettings();
         $customerSettings->attributes = $data;
-
         if (! $customerSettings->validate()) {
             return $this->_redirectError($customerSettings, $customerSettings->getErrors());
         }
 
-        $hubspotObject = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::CONTACT]);
+        $savedDb = Plugin::getInstance()->getSettingsService()->saveDb($customerSettings, HubSpotObjectTypes::CONTACT);
 
-        $hubspotObject->settings = $customerSettings->attributes;
-
-        if (! $hubspotObject->validate()) {
-            return $this->_redirectError($customerSettings, $hubspotObject->getErrors());
+        if (!$savedDb) {
+            return $this->_redirectError($customerSettings, $customerSettings->getErrors());
         }
 
-        $hubspotObject->save();
+        $savedApi = Plugin::getInstance()->getSettingsService()->saveApi();
 
-        $hubspotApi = Plugin::getInstance()->getHubSpot();
-
-        $mappingService = Plugin::getInstance()->getMapping();
-        $settingsUpsert = $mappingService->createSettings();
-
-        $apiSettings = $hubspotApi->ecommerceBridge()->upsertSettings($settingsUpsert);
-
-        //TODO more advanced checks to see if the settings went through
-        if ($apiSettings->mappings) {
+        if ($savedApi) {
             $this->setSuccessFlash('Customer settings saved.');
         } else {
             $this->setFailFlash('Error while connecting to the HubSpot API.');

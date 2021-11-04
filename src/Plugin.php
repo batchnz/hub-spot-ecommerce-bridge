@@ -17,6 +17,7 @@ use batchnz\hubspotecommercebridge\listeners\ProductListener;
 use batchnz\hubspotecommercebridge\services\ImportService;
 use batchnz\hubspotecommercebridge\services\MappingService;
 use batchnz\hubspotecommercebridge\models\Settings;
+use batchnz\hubspotecommercebridge\services\SettingsService;
 use Craft;
 use craft\base\Element;
 use craft\base\Plugin as CraftPlugin;
@@ -52,7 +53,6 @@ use batchnz\hubspotecommercebridge\listeners\OrderListener;
 class Plugin extends CraftPlugin
 {
     public const HANDLE = "hub-spot-ecommerce-bridge";
-
 
     // Static Properties
     // =========================================================================
@@ -271,6 +271,7 @@ class Plugin extends CraftPlugin
             'mapping' => MappingService::class,
             'import' => ImportService::class,
             'hubspot' => $hubspot,
+            'settingsService' => SettingsService::class,
         ]);
     }
 
@@ -295,6 +296,16 @@ class Plugin extends CraftPlugin
     }
 
     /**
+     * Returns the settings service
+     *
+     * @return SettingsService
+     */
+    public function getSettingsService(): SettingsService
+    {
+        return $this->get('settingsService');
+    }
+
+    /**
      * Returns the HubSpot provider
      *
      * @return HubSpotFactory
@@ -303,8 +314,6 @@ class Plugin extends CraftPlugin
     {
         return $this->get('hubspot');
     }
-
-
 
     protected function createSettingsModel()
     {
