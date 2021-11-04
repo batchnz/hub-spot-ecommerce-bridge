@@ -20,7 +20,6 @@ class CustomerSettings extends Model
     public ?string $city = null;
     public ?string $business = null;
 
-
     public function __construct()
     {
         parent::__construct();
@@ -36,14 +35,11 @@ class CustomerSettings extends Model
      *
      * @return self
      * @throws Exception
+     * @throws \JsonException
      */
     public static function fromHubspotObject(HubspotCommerceObject $object): self
     {
-        $settings = json_decode($object->settings);
-
-        if (json_last_error() === JSON_THROW_ON_ERROR) {
-            throw new Exception('Could not decode Customer settings.');
-        }
+        $settings = json_decode($object->settings, false, 512, JSON_THROW_ON_ERROR);
 
         $customerSettings = new static();
 

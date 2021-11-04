@@ -36,14 +36,11 @@ class OrderSettings extends Model
      *
      * @return self
      * @throws Exception
+     * @throws \JsonException
      */
     public static function fromHubspotObject(HubspotCommerceObject $object): self
     {
-        $settings = json_decode($object->settings);
-
-        if (json_last_error() === JSON_THROW_ON_ERROR) {
-            throw new Exception('Could not decode Order settings.');
-        }
+        $settings = json_decode($object->settings, false, 512, JSON_THROW_ON_ERROR);
 
         $orderSettings = new static();
 
