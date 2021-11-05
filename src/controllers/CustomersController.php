@@ -51,7 +51,7 @@ class CustomersController extends Controller
      */
     public function init(): void
     {
-        $this->requireAdmin();
+        $this->requirePermission('accessCp');
         parent::init();
     }
 

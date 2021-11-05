@@ -58,7 +58,7 @@ class SettingsController extends Controller
      */
     public function init()
     {
-        $this->requireAdmin();
+        $this->requirePermission('accessCp');
         parent::init();
     }
 
