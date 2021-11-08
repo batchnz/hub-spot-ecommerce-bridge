@@ -137,9 +137,9 @@ class SettingsController extends Controller
     {
         $this->requireAdmin();
         $store = [
-          "id" => Plugin::getInstance()->getSettings()->storeId,
-          "label" => Plugin::getInstance()->getSettings()->storeLabel,
-          "adminUri" => Plugin::getInstance()->getSettings()->storeAdminUri,
+          "id" => Craft::parseEnv(Plugin::getInstance()->getSettings()->storeId),
+          "label" => Craft::parseEnv(Plugin::getInstance()->getSettings()->storeLabel),
+          "adminUri" => Craft::parseEnv(Plugin::getInstance()->getSettings()->storeAdminUri),
         ];
 
         $hubspot = Plugin::getInstance()->getHubSpot();

@@ -91,7 +91,7 @@ class ImportController extends Controller
     {
         $hubspot = Plugin::getInstance()->getHubSpot();
 
-        $res = $hubspot->ecommerceBridge()->checkSyncStatus(Plugin::getInstance()->getSettings()->storeId, HubSpotObjectTypes::DEAL, 35933);
+        $res = $hubspot->ecommerceBridge()->checkSyncStatus(Craft::parseEnv(Plugin::getInstance()->getSettings()->storeId), HubSpotObjectTypes::DEAL, 35933);
 
         return $this->asJson($res);
     }
