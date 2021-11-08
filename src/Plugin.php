@@ -159,7 +159,7 @@ class Plugin extends CraftPlugin
             ];
         }
 
-        if (true) {
+        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $ret['subnav']['settings'] = [
                 'label' => 'Settings',
                 'url' => self::HANDLE . '/settings'

@@ -65,9 +65,11 @@ class SettingsController extends Controller
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store
      * @return Response
+     * @throws \yii\web\ForbiddenHttpException
      */
     public function actionEdit(): Response
     {
+        $this->requireAdmin();
         $settings = Plugin::getInstance()->getSettings();
 
         $variables = [
@@ -84,6 +86,7 @@ class SettingsController extends Controller
      */
     public function actionSaveSettings(): ?Response
     {
+        $this->requireAdmin();
         $this->requirePostRequest();
 
         $params = Craft::$app->getRequest()->getBodyParams();
@@ -132,6 +135,7 @@ class SettingsController extends Controller
      */
     public function actionCreateStore(): Response
     {
+        $this->requireAdmin();
         $store = [
           "id" => Plugin::getInstance()->getSettings()->storeId,
           "label" => Plugin::getInstance()->getSettings()->storeLabel,
