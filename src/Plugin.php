@@ -265,7 +265,7 @@ class Plugin extends CraftPlugin
 
         // Create an preconfigured instance of the HubSpot provider
         // to be injected into each instance of the api service
-        $hubspot = HubSpotFactory::create($settings->apiKey);
+        $hubspot = HubSpotFactory::create(Craft::parseEnv($settings->apiKey));
 
         $this->setComponents([
             'mapping' => MappingService::class,
