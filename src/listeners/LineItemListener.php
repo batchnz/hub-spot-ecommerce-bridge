@@ -49,14 +49,16 @@ class LineItemListener
 
     protected static function modelLineItem($lineItem): array
     {
+        $order = $lineItem->getOrder();
+        $purchasable = $lineItem->getPurchasable();
         //TODO make this dynamic dependant on the settings set by the user
         return ([
-            "lineItemId" => $lineItem->id,
-            "description" => $lineItem->getDescription(),
-            "qty" => $lineItem->qty,
-            "price" => $lineItem->getPrice(),
-            "orderId" => $lineItem->getOrder()->id, // Association with related order
-            "sku" => $lineItem->getPurchasable()->sku, // Association with related product
+            "lineItemId" => $lineItem->id ?? '',
+            "description" => $lineItem->getDescription() ?? '',
+            "qty" => $lineItem->qty ?? '',
+            "price" => $lineItem->getPrice() ?? '',
+            "orderId" => $order ? $order->id : '', // Association with related order
+            "sku" => $purchasable ? $purchasable->sku : '', // Association with related product
         ]);
     }
 }

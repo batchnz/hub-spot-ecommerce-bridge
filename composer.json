@@ -2,7 +2,7 @@
     "name": "batchnz/hub-spot-ecommerce-bridge",
     "description": "Uses the HubSpot Ecommerce Bridge to sync data from Craft Commerce",
     "type": "craft-plugin",
-    "version": "1.8.0",
+    "version": "1.9.0",
     "keywords": [
         "craft",
         "cms",

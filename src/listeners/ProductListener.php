@@ -51,9 +51,9 @@ class ProductListener
     {
         //TODO make this dynamic dependant on the settings set by the user
         return ([
-            "price" => $variant->price,
-            "sku" => $variant->sku,
-            "title" => $variant->title,
+            "price" => $variant->price ?? '',
+            "sku" => $variant->sku ?? '',
+            "title" => $variant->title ?? '',
         ]);
     }
 }

@@ -50,12 +50,12 @@ class CustomerListener
 
     protected static function modelCustomer($customer): array
     {
-        $user = $customer->getUser();
-        $billingAddress = $customer->getPrimaryBillingAddress();
-        $shippingAddress = $customer->getPrimaryShippingAddress();
-        $orders = $customer->getOrders();
-        $activeCarts = $customer->getActiveCarts();
-        $inactiveCarts = $customer->getInactiveCarts();
+        $user = $customer->getUser() ?? '';
+        $billingAddress = $customer->getPrimaryBillingAddress() ?? '';
+        $shippingAddress = $customer->getPrimaryShippingAddress() ?? '';
+        $orders = $customer->getOrders() ?? '';
+        $activeCarts = $customer->getActiveCarts() ?? '';
+        $inactiveCarts = $customer->getInactiveCarts() ?? '';
         $orderEmail = "";
 
         foreach (array_merge($orders, $activeCarts, $inactiveCarts) as $order) {

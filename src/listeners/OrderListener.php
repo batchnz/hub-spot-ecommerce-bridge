@@ -51,15 +51,16 @@ class OrderListener
 
     protected static function modelOrder($order): array
     {
+        $orderStatus = $order->getOrderStatus();
         //TODO make this dynamic dependant on the settings set by the user
         return ([
-            "orderId" => $order->id,
-            "total" => $order->total,
-            "dateCreated" => $order->dateCreated->format('Y-m-d\TH:i:sP'),
-            "orderStatus" => $order->getOrderStatus() ? $order->getOrderStatus()->handle : $order->getOrderStatus(),
-            "customerId" => $order->customerId,
-            "orderShortNumber" => $order->reference,
-            "orderNumber" => $order->number,
+            "orderId" => $order->id ?? '',
+            "total" => $order->total ?? '',
+            "dateCreated" => $order->dateCreated->format('Y-m-d\TH:i:sP') ?? '',
+            "orderStatus" => $orderStatus ? $orderStatus->handle : $orderStatus,
+            "customerId" => $order->customerId ?? '',
+            "orderShortNumber" => $order->reference ?? '',
+            "orderNumber" => $order->number ?? '',
         ]);
     }
 }
