@@ -12,11 +12,14 @@ class OrderSettings extends Model
     private const TOTAL_PRICE = "amount";
     private const DEAL_TYPE = "dealtype";
     private const ORDER_NUMBER = "ip__ecomm_bridge__order_number";
+    private const DISCOUNT_AMOUNT = "ip__ecomm_bridge__discount_amount";
 
     public string $orderStage;
     public string $totalPrice;
     public string $dealType;
     public string $orderNumber;
+    public string $discountAmount;
+    public ?string $discountCode = null;
     public ?string $dateCreated = null;
     public ?string $orderShortNumber = null;
 
@@ -27,6 +30,7 @@ class OrderSettings extends Model
         $this->totalPrice = self::TOTAL_PRICE;
         $this->dealType = self::DEAL_TYPE;
         $this->orderNumber = self::ORDER_NUMBER;
+        $this->discountAmount = self::DISCOUNT_AMOUNT;
     }
 
     /**
@@ -48,6 +52,8 @@ class OrderSettings extends Model
         $orderSettings->totalPrice = $settings->totalPrice ?? self::TOTAL_PRICE;
         $orderSettings->dealType = $settings->dealType ?? self::DEAL_TYPE;
         $orderSettings->orderNumber = $settings->orderNumber ?? self::ORDER_NUMBER;
+        $orderSettings->discountAmount = $settings->discountAmount ?? self::DISCOUNT_AMOUNT;
+        $orderSettings->discountCode = $settings->discountCode ?? null;
         $orderSettings->dateCreated = $settings->dateCreated ?? null;
         $orderSettings->orderShortNumber = $settings->orderShortNumber ?? null;
 
@@ -64,8 +70,9 @@ class OrderSettings extends Model
             ['totalPrice', 'compare', 'compareValue' => self::TOTAL_PRICE],
             ['dealType', 'compare', 'compareValue' => self::DEAL_TYPE],
             ['orderNumber', 'compare', 'compareValue' => self::ORDER_NUMBER],
+            ['discountAmount', 'compare', 'compareValue' => self::DISCOUNT_AMOUNT],
 
-            [['orderStage', 'totalPrice', 'dealType', 'orderNumber', 'dateCreated', 'orderShortNumber'], 'string'],
+            [['orderStage', 'totalPrice', 'dealType', 'orderNumber', 'discountAmount', 'discountCode', 'dateCreated', 'orderShortNumber'], 'string'],
         ];
     }
 }

@@ -54,6 +54,26 @@
         }) }}
 
         {{ forms.textField({
+            label: 'Discount Amount',
+            id: 'discountAmount',
+            name: 'discountAmount',
+            placeholder: orderSettings.discountAmount,
+            value: orderSettings.discountAmount,
+            errors: orderSettings.getErrors('discountAmount'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Discount Code',
+            id: 'discountCode',
+            name: 'discountCode',
+            placeholder: orderSettings.discountCode,
+            value: orderSettings.discountCode,
+            errors: orderSettings.getErrors('discountCode'),
+            disabled: false,
+        }) }}
+
+        {{ forms.textField({
             label: 'Date Created',
             id: 'dateCreated',
             name: 'dateCreated',
