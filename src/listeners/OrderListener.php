@@ -61,6 +61,8 @@ class OrderListener
             "customerId" => $order->customerId ?? '',
             "orderShortNumber" => $order->reference ?? '',
             "orderNumber" => $order->number ?? '',
+            "discountAmount" => $order->totalDiscount ?? '',
+            "discountCode" => $order->couponCode ?? '',
         ]);
     }
 }

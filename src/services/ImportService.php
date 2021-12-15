@@ -166,6 +166,8 @@ class ImportService extends Component
             [[orders.reference]] as orderShortNumber,
             [[orders.number]] as orderNumber,
             [[orders.customerId]] as customerId,
+            [[orders.totalDiscount]] as discountAmount,
+            [[orders.couponCode]] as discountCode,
             [[orderStatuses.handle]] as orderStatus,')
             ->from('{{%commerce_orders}} as orders')
             ->leftJoin('{{%commerce_orderstatuses}} as orderStatuses', '[[orders.orderStatusId]] = [[orderStatuses.id]]')
@@ -199,6 +201,8 @@ class ImportService extends Component
                     "orderShortNumber" => $order['orderShortNumber']."",
                     "dealType" => "existingbusiness",
                     "orderNumber" => $order['orderNumber']."",
+                    "discountAmount" => $order['discountAmount']."",
+                    "discountCode" => $order['discountCode']."",
                 ],
                 "associations" => [
                     HubSpotObjectTypes::CONTACT => [$order['customerId'] ?? ""]
