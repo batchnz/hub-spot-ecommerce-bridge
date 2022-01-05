@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * HubSpot Ecommerce Bridge plugin for Craft CMS 3.x
  *
@@ -49,11 +48,13 @@ class ProductListener
 
     protected static function modelProduct($variant): array
     {
+        $size = $variant->size ? $variant->size->one() : null;
         //TODO make this dynamic dependant on the settings set by the user
         return ([
             "price" => $variant->price ?? '',
             "sku" => $variant->sku ?? '',
             "title" => $variant->title ?? '',
+            "size" =>  $size ? $size->title : '',
         ]);
     }
 }
