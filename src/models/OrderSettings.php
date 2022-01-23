@@ -65,7 +65,7 @@ class OrderSettings extends Model
         parent::rules();
 
         return [
-            [['orderStage', 'totalPrice', 'dealType', 'orderNumber'], 'required'],
+            [['orderStage', 'totalPrice', 'dealType', 'orderNumber', 'discountAmount'], 'required'],
             ['orderStage', 'compare', 'compareValue' => self::ORDER_STAGE],
             ['totalPrice', 'compare', 'compareValue' => self::TOTAL_PRICE],
             ['dealType', 'compare', 'compareValue' => self::DEAL_TYPE],

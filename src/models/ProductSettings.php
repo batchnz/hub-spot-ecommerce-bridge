@@ -15,6 +15,7 @@ class ProductSettings extends Model
     public string $sku;
     public string $price;
     public string $title;
+    public ?string $size = null;
 
     public function __construct()
     {
@@ -42,6 +43,7 @@ class ProductSettings extends Model
         $productSettings->sku = $settings->orderStage ?? self::SKU;
         $productSettings->price = $settings->totalPrice ?? self::PRICE;
         $productSettings->title = $settings->dealType ?? self::TITLE;
+        $productSettings->size = $settings->size ?? null;
 
         return $productSettings;
     }
@@ -56,7 +58,7 @@ class ProductSettings extends Model
             ['price', 'compare', 'compareValue' => self::PRICE],
             ['title', 'compare', 'compareValue' => self::TITLE],
 
-            [['sku', 'title', 'price'], 'string'],
+            [['sku', 'title', 'price', 'size'], 'string'],
         ];
     }
 }

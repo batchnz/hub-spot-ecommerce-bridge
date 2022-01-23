@@ -43,6 +43,15 @@
             disabled: true,
         }) }}
 
+        {{ forms.textField({
+            label: 'Size',
+            id: 'size',
+            name: 'size',
+            placeholder: productSettings.size,
+            value: productSettings.size,
+            errors: productSettings.getErrors('size'),
+        }) }}
+
         <input type="submit" class="btn submit" value="{{ 'Save' }}">
     </form>
 {% endblock %}

@@ -17,6 +17,7 @@
 .DS_Store
 .idea
 .project
+.php-cs-fixer.cache
 .settings
 *.esproj
 *.sublime-workspace

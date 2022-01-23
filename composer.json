@@ -2,7 +2,7 @@
     "name": "batchnz/hub-spot-ecommerce-bridge",
     "description": "Uses the HubSpot Ecommerce Bridge to sync data from Craft Commerce",
     "type": "craft-plugin",
-    "version": "1.10.0",
+    "version": "1.11.0",
     "keywords": [
         "craft",
         "cms",
@@ -26,7 +26,8 @@
     },
     "require": {
         "craftcms/cms": "^3.0.0",
-        "hubspot/hubspot-php": "^3.2"
+        "hubspot/hubspot-php": "^3.2",
+      "ext-json": "*"
     },
     "autoload": {
         "psr-4": {

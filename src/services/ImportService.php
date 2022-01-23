@@ -8,6 +8,7 @@ use batchnz\hubspotecommercebridge\jobs\DeleteAllJob;
 use batchnz\hubspotecommercebridge\jobs\ImportAllJob;
 use Craft;
 use craft\base\Component;
+use craft\commerce\elements\Variant;
 use craft\db\Query;
 use craft\db\Table;
 
@@ -27,21 +28,18 @@ class ImportService extends Component
      */
     public function fetchProducts(): array
     {
-        $query = new Query();
-        $query->select('
-            [[variants.id]] as variantId,
-            [[products.id]] as productId,
-            [[variants.sku]] as sku,
-            [[variants.price]] as price,
-            [[content.title]] as title')
-            ->from('{{%commerce_variants}} as variants')
-            ->leftJoin('{{%commerce_products}} as products', '[[variants.productId]] = [[products.id]]')
-            ->leftJoin(['content' => Table::CONTENT], '[[products.id]] = [[content.elementId]]')
-            ->leftJoin(['elements' => Table::ELEMENTS], '[[products.id]] = [[elements.id]]')
-            ->where(['elements.dateDeleted' => null])
-            ->orderBy(['[[products.id]]' => SORT_DESC]);
+        $products = Variant::find()
+            ->with('size')
+            ->leftJoin('{{%commerce_products}} as products', '[[productId]] = [[products.id]]')->all();
 
-        return $query->all();
+        return array_map(static function ($product) {
+            return [
+                "price" => $product->price,
+                "sku" => $product->sku,
+                "title" => $product->product->title,
+                "size" => $product->size ? $product->size[0]->title : "",
+            ];
+        }, $products);
     }
 
     /**
@@ -64,6 +62,7 @@ class ImportService extends Component
                     "price" => $product['price'],
                     "sku" => $product['sku'],
                     "title" => $product['title'],
+                    "size" => $product['size'],
                 ]
             ]
         );
