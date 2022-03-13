@@ -52,6 +52,33 @@
             errors: productSettings.getErrors('size'),
         }) }}
 
+        {{ forms.textField({
+            label: 'Colour',
+            id: 'colour',
+            name: 'colour',
+            placeholder: productSettings.colour,
+            value: productSettings.colour,
+            errors: productSettings.getErrors('colour'),
+        }) }}
+
+        {{ forms.textField({
+            label: 'Sheen',
+            id: 'sheen',
+            name: 'sheen',
+            placeholder: productSettings.sheen,
+            value: productSettings.sheen,
+            errors: productSettings.getErrors('sheen'),
+        }) }}
+
+        {{ forms.textField({
+            label: 'Size (Litres)',
+            id: 'size_litres',
+            name: 'size_litres',
+            placeholder: productSettings.size_litres,
+            value: productSettings.size_litres,
+            errors: productSettings.getErrors('size_litres'),
+        }) }}
+
         <input type="submit" class="btn submit" value="{{ 'Save' }}">
     </form>
 {% endblock %}

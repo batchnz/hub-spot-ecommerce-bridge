@@ -29,7 +29,7 @@ class ImportService extends Component
     public function fetchProducts(): array
     {
         $products = Variant::find()
-            ->with('size')
+            ->with(['size', 'paintColour', 'paintSheen', 'coatingColour', 'coatingSheen'])
             ->leftJoin('{{%commerce_products}} as products', '[[productId]] = [[products.id]]')->all();
 
         return array_map(static function ($product) {
@@ -38,6 +38,11 @@ class ImportService extends Component
                 "sku" => $product->sku,
                 "title" => $product->product->title,
                 "size" => $product->size ? $product->size[0]->title : "",
+                "paintColour" => $product->paintColour ? $product->paintColour[0]->title : "",
+                "paintSheen" => $product->paintSheen ? $product->paintSheen[0]->title : "",
+                "coatingColour" => $product->coatingColour ? $product->coatingColour[0]->title : "",
+                "coatingSheen" => $product->coatingSheen ? $product->coatingSheen[0]->title : "",
+                "sizeInLitres" => $product->size ? $product->size[0]->sizeInLitres : ""
             ];
         }, $products);
     }
@@ -63,6 +68,9 @@ class ImportService extends Component
                     "sku" => $product['sku'],
                     "title" => $product['title'],
                     "size" => $product['size'],
+                    "colour" => $product['paintColour'] !== '' ? $product['paintColour'] : $product['coatingColour'],
+                    "sheen" => $product["paintSheen"] !== '' ? $product["paintSheen"] : $product['coatingSheen'],
+                    "size_litres" => $product['sizeInLitres'],
                 ]
             ]
         );
