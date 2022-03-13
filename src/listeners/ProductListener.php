@@ -49,12 +49,24 @@ class ProductListener
     protected static function modelProduct($variant): array
     {
         $size = $variant->size ? $variant->size->one() : null;
+
+        $paintColour = $variant->paintColour ? $variant->paintColour->one() : null;
+        $paintSheen = $variant->paintSheen ? $variant->paintSheen->one() : null;
+
+        $coatingColour = $variant->coatingColour ? $variant->coatingColour->one() : null;
+        $coatingSheen = $variant->coatingSheen ? $variant->coatingSheen->one() : null;
+
         //TODO make this dynamic dependant on the settings set by the user
         return ([
             "price" => $variant->price ?? '',
             "sku" => $variant->sku ?? '',
             "title" => $variant->title ?? '',
             "size" =>  $size ? $size->title : '',
+            "paintColour" => $paintColour ? $paintColour->title : '',
+            "paintSheen" => $paintSheen ? $paintSheen->title : '',
+            "coatingColour" => $coatingColour ? $coatingColour->title : '',
+            "coatingSheen" => $coatingSheen ? $coatingSheen->title : '',
+            "sizeInLitres" => $size ? $size->sizeInLitres : ''
         ]);
     }
 }

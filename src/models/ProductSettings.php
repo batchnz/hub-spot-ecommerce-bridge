@@ -16,6 +16,9 @@ class ProductSettings extends Model
     public string $price;
     public string $title;
     public ?string $size = null;
+    public ?string $colour = null;
+    public ?string $sheen = null;
+    public ?string $size_litres = null;
 
     public function __construct()
     {
@@ -44,6 +47,9 @@ class ProductSettings extends Model
         $productSettings->price = $settings->totalPrice ?? self::PRICE;
         $productSettings->title = $settings->dealType ?? self::TITLE;
         $productSettings->size = $settings->size ?? null;
+        $productSettings->colour = $settings->colour ?? null;
+        $productSettings->sheen = $settings->sheen ?? null;
+        $productSettings->size_litres = $settings->size_litres ?? null;
 
         return $productSettings;
     }
@@ -58,7 +64,7 @@ class ProductSettings extends Model
             ['price', 'compare', 'compareValue' => self::PRICE],
             ['title', 'compare', 'compareValue' => self::TITLE],
 
-            [['sku', 'title', 'price', 'size'], 'string'],
+            [['sku', 'title', 'price', 'size', 'colour', 'sheen', 'size_litres'], 'string'],
         ];
     }
 }
