@@ -52,17 +52,17 @@ class DeleteAllJob extends BaseJob
     {
         $importService = Plugin::getInstance()->getImport();
 
-        $products = $importService->fetchProducts();
-        $productsMessages = $importService->prepareMessages(HubSpotObjectTypes::PRODUCT, HubSpotActionTypes::DELETE, $products);
-
-        $customers = $importService->fetchCustomers();
-        $customersMessages = $importService->prepareMessages(HubSpotObjectTypes::CONTACT, HubSpotActionTypes::DELETE, $customers);
+        $lineItems = $importService->fetchLineItems();
+        $lineItemsMessages = $importService->prepareMessages(HubSpotObjectTypes::LINE_ITEM, HubSpotActionTypes::DELETE, $lineItems);
 
         $orders = $importService->fetchOrders();
         $orderMessages = $importService->prepareMessages(HubSpotObjectTypes::DEAL, HubSpotActionTypes::DELETE, $orders);
 
-        $lineItems = $importService->fetchLineItems();
-        $lineItemsMessages = $importService->prepareMessages(HubSpotObjectTypes::LINE_ITEM, HubSpotActionTypes::DELETE, $lineItems);
+        $customers = $importService->fetchCustomers();
+        $customersMessages = $importService->prepareMessages(HubSpotObjectTypes::CONTACT, HubSpotActionTypes::DELETE, $customers);
+
+        $products = $importService->fetchProducts();
+        $productsMessages = $importService->prepareMessages(HubSpotObjectTypes::PRODUCT, HubSpotActionTypes::DELETE, $products);
 
         $totalMessages = count($productsMessages) + count($customersMessages) + count($orderMessages) + count($lineItemsMessages);
         $completedMessages = 0;
