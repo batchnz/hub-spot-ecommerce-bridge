@@ -264,6 +264,8 @@ class ImportService extends Component
                 "price" => $lineItem['price'],
                 "qty" => $lineItem['qty'],
                 "description" => $lineItem['description'],
+                'hs_assoc__deal_id' => $lineItem['orderId'] ?? "",
+                'hs_assoc__product_id' => $lineItem['sku'] ?? "",
             ],
             "associations" => [
                 HubSpotObjectTypes::DEAL => [$lineItem['orderId'] ?? ""],
