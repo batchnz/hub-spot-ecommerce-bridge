@@ -25,5 +25,6 @@ abstract class HubSpotDealStages
         "operator1" => self::PROCESSED,
         "operator2" => self::PROCESSED,
         "operator3" => self::PROCESSED,
+        "shipped" => self::SHIPPED,
     ];
 }

@@ -194,6 +194,11 @@ class ImportService extends Component
     {
         //TODO link the properties imported to the properties set in settings
         //TODO fix up the format of this data so they all have the correct data type (e.g. String instead of integer)
+        $orderStatus = HubSpotDealStages::ABANDONED;
+        if ($order['orderStatus'] && array_key_exists($order['orderStatus'], HubSpotDealStages::PIPELINE)) {
+            $orderStatus = HubSpotDealStages::PIPELINE[$order['orderStatus']];
+        }
+
         return (
             [
                 "action" => $action,
@@ -202,7 +207,7 @@ class ImportService extends Component
                 "properties" => [
                     "totalPrice" => $order['total']."",
                     "dateCreated" => (strtotime($order['dateCreated']) * 1000)."",
-                    "orderStage" => $order['orderStatus'] ? HubSpotDealStages::PIPELINE[$order['orderStatus']] : HubSpotDealStages::ABANDONED,
+                    "orderStage" => $orderStatus,
                     "orderShortNumber" => $order['orderShortNumber']."",
                     "dealType" => "existingbusiness",
                     "orderNumber" => $order['orderNumber']."",
