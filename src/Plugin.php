@@ -24,7 +24,7 @@ use craft\base\Plugin as CraftPlugin;
 use craft\commerce\elements\Order;
 
 use craft\commerce\elements\Variant;
-use craft\commerce\services\Customers;
+use craft\commerce\records\Customer;
 use craft\commerce\services\LineItems;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\UrlHelper;
@@ -73,21 +73,21 @@ class Plugin extends CraftPlugin
      *
      * @var string
      */
-    public $schemaVersion = '1.0.0';
+    public string $schemaVersion = '1.0.0';
 
     /**
      * Set to `true` if the plugin should have a settings view in the control panel.
      *
      * @var bool
      */
-    public $hasCpSettings = true;
+    public bool $hasCpSettings = true;
 
     /**
      * Set to `true` if the plugin should have its own section (main nav item) in the control panel.
      *
      * @var bool
      */
-    public $hasCpSection = true;
+    public bool $hasCpSection = true;
 
     // Public Methods
     // =========================================================================
@@ -169,7 +169,7 @@ class Plugin extends CraftPlugin
         return $ret;
     }
 
-    public function getSettingsResponse()
+    public function getSettingsResponse(): mixed
     {
         Craft::$app->controller->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings'));
     }
@@ -226,8 +226,8 @@ class Plugin extends CraftPlugin
 
         // On save Customer
         Event::on(
-            Customers::class,
-            Customers::EVENT_AFTER_SAVE_CUSTOMER,
+            Customer::class,
+            Customer::EVENT_BEFORE_UPDATE,
             [CustomerListener::class, 'upsert'],
         );
 
@@ -315,7 +315,7 @@ class Plugin extends CraftPlugin
         return $this->get('hubspot');
     }
 
-    protected function createSettingsModel()
+    protected function createSettingsModel(): ?craft\base\Model
     {
         return new Settings();
     }

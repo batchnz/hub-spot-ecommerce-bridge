@@ -48,7 +48,7 @@ class ImportController extends Controller
      *         The actions must be in 'kebab-case'
      * @access protected
      */
-    protected $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = true;
 
     // Public Methods
     // =========================================================================

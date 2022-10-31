@@ -54,7 +54,7 @@ class ProductSettings extends Model
         return $productSettings;
     }
 
-    public function rules()
+    public function rules(): array
     {
         parent::rules();
 

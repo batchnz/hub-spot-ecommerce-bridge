@@ -54,7 +54,7 @@ class CustomerSettings extends Model
         return $customerSettings;
     }
 
-    public function rules()
+    public function rules(): array
     {
         parent::rules();
 

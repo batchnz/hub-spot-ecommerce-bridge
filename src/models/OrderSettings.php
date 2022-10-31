@@ -60,7 +60,7 @@ class OrderSettings extends Model
         return $orderSettings;
     }
 
-    public function rules()
+    public function rules(): array
     {
         parent::rules();
 

@@ -39,12 +39,12 @@ class ProductsController extends Controller
     *         The actions must be in 'kebab-case'
     * @access protected
     */
-    protected $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = true;
 
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         $this->requirePermission('accessCp');
         parent::init();

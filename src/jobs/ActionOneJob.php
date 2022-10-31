@@ -51,7 +51,7 @@ class ActionOneJob extends BaseJob
      * When the Queue is ready to run your job, it will call this method.
      * @throws \Exception
      */
-    public function execute($queue)
+    public function execute($queue): void
     {
         $importService = Plugin::getInstance()->getImport();
 

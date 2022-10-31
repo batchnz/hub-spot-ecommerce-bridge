@@ -41,7 +41,7 @@ class LineItemsController extends Controller
     *         The actions must be in 'kebab-case'
     * @access protected
     */
-    protected $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = true;
 
     // Public Methods
     // =========================================================================
@@ -50,7 +50,7 @@ class LineItemsController extends Controller
      * @throws \yii\base\InvalidConfigException
      * @throws \yii\web\ForbiddenHttpException
      */
-    public function init()
+    public function init(): void
     {
         $this->requirePermission('accessCp');
         parent::init();

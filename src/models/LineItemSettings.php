@@ -46,7 +46,7 @@ class LineItemSettings extends Model
         return $lineItemSettings;
     }
 
-    public function rules()
+    public function rules(): array
     {
         parent::rules();
 

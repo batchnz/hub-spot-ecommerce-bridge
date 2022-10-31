@@ -1,6 +1,5 @@
 <?php
 
-
 /**
  * HubSpot Ecommerce Bridge plugin for Craft CMS 3.x
  *

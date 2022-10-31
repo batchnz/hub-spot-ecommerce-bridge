@@ -12,7 +12,7 @@ class Settings extends Model
     public $storeAdminUri = "";
     public $webhookUri = "";
 
-    public function rules()
+    public function rules(): array
     {
         return [
             [['apiKey', 'storeId', 'storeLabel', 'storeAdminUri'], 'required'],
