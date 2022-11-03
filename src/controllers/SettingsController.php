@@ -13,8 +13,13 @@ namespace batchnz\hubspotecommercebridge\controllers;
 
 use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
+use craft\errors\MissingComponentException;
 use craft\web\Controller;
 
+use SevenShores\Hubspot\Exceptions\BadRequest;
+use yii\base\InvalidConfigException;
+use yii\web\BadRequestHttpException;
+use yii\web\ForbiddenHttpException;
 use yii\web\Response;
 
 /**
@@ -47,16 +52,16 @@ class SettingsController extends Controller
     *         The actions must be in 'kebab-case'
     * @access protected
     */
-    protected $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = true;
 
     // Public Methods
     // =========================================================================
 
     /**
-     * @throws \yii\base\InvalidConfigException
-     * @throws \yii\web\ForbiddenHttpException
+     * @throws InvalidConfigException
+     * @throws ForbiddenHttpException
      */
-    public function init()
+    public function init(): void
     {
         $this->requirePermission('accessCp');
         parent::init();
@@ -65,7 +70,7 @@ class SettingsController extends Controller
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store
      * @return Response
-     * @throws \yii\web\ForbiddenHttpException
+     * @throws ForbiddenHttpException
      */
     public function actionEdit(): Response
     {
@@ -81,8 +86,8 @@ class SettingsController extends Controller
 
     /**
      * @return Response|null
-     * @throws \yii\web\BadRequestHttpException
-     * @throws \craft\errors\MissingComponentException
+     * @throws BadRequestHttpException
+     * @throws MissingComponentException
      */
     public function actionSaveSettings(): ?Response
     {
@@ -131,7 +136,7 @@ class SettingsController extends Controller
     /**
      * Creates the store in HubSpot that will sync with the craft commerce store
      *     * @return Response
-     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
+     * @throws BadRequest
      */
     public function actionCreateStore(): Response
     {

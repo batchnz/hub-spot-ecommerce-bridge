@@ -57,7 +57,7 @@ class ImportController extends Controller
      * @throws \yii\web\ForbiddenHttpException
      * @throws \yii\base\InvalidConfigException
      */
-    public function init()
+    public function init(): void
     {
         $this->requirePermission('accessCp');
         parent::init();
