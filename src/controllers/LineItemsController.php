@@ -94,12 +94,6 @@ class LineItemsController extends Controller
 
         $data = $this->request->getBodyParams();
 
-//        // Connection ID is a required parameter
-//        if (!empty($data['firstname']) ) {
-//            $this->setFailFlash(Plugin::t('Couldn\'t find the organisation\'s connection.'));
-//            return null;
-//        }
-
         $lineItemSettings = new LineItemSettings();
         $lineItemSettings->attributes = $data;
 
@@ -113,13 +107,9 @@ class LineItemsController extends Controller
             return $this->_redirectError($lineItemSettings, $lineItemSettings->getErrors());
         }
 
-        $savedApi = Plugin::getInstance()->getSettingsService()->saveApi();
+        //TODO: Create a customer unique identifier field like for the Orders
 
-        if ($savedApi) {
-            $this->setSuccessFlash('Line Item settings saved.');
-        } else {
-            $this->setFailFlash('Error while connecting to the HubSpot API.');
-        }
+        $this->setSuccessFlash('Line Item settings saved.');
 
         return $this->redirectToPostedUrl();
     }
