@@ -76,21 +76,21 @@ class ProductService extends Component implements HubspotServiceInterface
      * @throws JsonException
      * @throws HubspotCommerceSchemaMissingException
      */
-    public function upsertToHubspot($model): bool
+    public function upsertToHubspot($model): int|false
     {
         $properties = $this->mapProperties($model);
         $hubspot = Plugin::getInstance()->getHubSpot();
 
         try {
-            $hubspot->products()->create($properties);
-            return true;
+            $res = $hubspot->products()->create($properties);
+            return $res->getData()['objectId'];
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
             $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
             if ($existingObjectId) {
                 $hubspot->products()->update($existingObjectId, $properties);
-                return true;
+                return $existingObjectId;
             }
         }
 

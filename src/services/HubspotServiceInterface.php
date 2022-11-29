@@ -8,5 +8,5 @@ interface HubspotServiceInterface
 {
     public function fetch(int $id): HubspotModel;
     public function mapProperties($model): array;
-    public function upsertToHubspot($model): bool;
+    public function upsertToHubspot($model): int|false;
 }

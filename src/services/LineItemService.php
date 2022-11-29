@@ -41,7 +41,7 @@ class LineItemService extends Component implements HubspotServiceInterface
 
     /**
      * Maps properties to a format suitable to be included in the request to Hubspot
-     * @param LineItem $model
+     * @param HubspotLineItem $model
      *
      * @throws Exception
      * @throws JsonException
@@ -70,28 +70,28 @@ class LineItemService extends Component implements HubspotServiceInterface
 
     /**
      * Creates a lineitem in Hubspot. If the lineitem already exists, then lineitem the existing deal.
-     * @param LineItem $model
+     * @param HubspotLineItem $model
      *
      * @throws Exception
      * @throws JsonException
      * @throws HubspotCommerceSchemaMissingException
      */
-    public function upsertToHubspot($model): bool
+    public function upsertToHubspot($model): int|false
     {
         $properties = $this->mapProperties($model);
         $hubspot = Plugin::getInstance()->getHubSpot();
 
         try {
             //TODO: Add lineItem to deal
-            $hubspot->lineItems()->create($properties);
-            return true;
+            $res = $hubspot->lineItems()->create($properties);
+            return $res->getData()['objectId'];
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
             $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
             if ($existingObjectId) {
                 $hubspot->lineItems()->update($existingObjectId, $properties);
-                return true;
+                return $existingObjectId;
             }
         }
 
