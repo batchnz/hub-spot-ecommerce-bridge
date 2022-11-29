@@ -28,6 +28,7 @@ use craft\commerce\elements\Order;
 
 use craft\commerce\elements\Variant;
 use craft\commerce\records\Customer;
+use craft\elements\User;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
@@ -215,8 +216,8 @@ class Plugin extends CraftPlugin
 
         // On save Customer
         Event::on(
-            Customer::class,
-            Customer::EVENT_BEFORE_UPDATE,
+            User::class,
+            Element::EVENT_AFTER_SAVE,
             [CustomerListener::class, 'upsert'],
         );
 

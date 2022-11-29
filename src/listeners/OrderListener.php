@@ -14,7 +14,10 @@ namespace batchnz\hubspotecommercebridge\listeners;
 use batchnz\hubspotecommercebridge\enums\HubSpotActionTypes;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\jobs\ActionOneJob;
+use batchnz\hubspotecommercebridge\jobs\UpsertDealJob;
 use Craft;
+use craft\commerce\elements\Order;
+use craft\elements\User;
 use craft\events\ModelEvent;
 use yii\base\Event;
 
@@ -22,14 +25,12 @@ class OrderListener
 {
     public static function upsert(ModelEvent $event): void
     {
-        $order = self::modelOrder($event->sender);
+        /** @var Order $order */
+        $order = $event->sender;
         $queue = Craft::$app->getQueue();
 
-        $queue->push(new ActionOneJob([
-            "description" => Craft::t('hub-spot-ecommerce-bridge', 'Upsert Craft Commerce Order Data to HubSpot'),
-            "objectType" => HubSpotObjectTypes::DEAL,
-            "action" => HubSpotActionTypes::UPSERT,
-            "object" => $order,
+        $queue->push(new UpsertDealJob([
+            'orderId' => $order->id,
         ]));
     }
 
