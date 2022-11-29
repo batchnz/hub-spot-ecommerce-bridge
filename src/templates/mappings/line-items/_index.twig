@@ -14,6 +14,16 @@
         {{ csrfInput() }}
 
         {{ forms.textField({
+            label: 'Hubspot Product ID',
+            id: 'productId',
+            name: 'productId',
+            placeholder: lineItemSettings.productId,
+            value: lineItemSettings.productId,
+            errors: lineItemSettings.getErrors('productId'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
             label: 'Quantity',
             id: 'qty',
             name: 'qty',

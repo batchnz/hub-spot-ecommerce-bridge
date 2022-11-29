@@ -2,6 +2,7 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
+use batchnz\hubspotecommercebridge\enums\HubSpotAssocitations;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\HubspotLineItem;
 use batchnz\hubspotecommercebridge\models\LineItemSettings;
@@ -13,6 +14,7 @@ use CraftCommerceObjectMissing;
 use HubspotCommerceSchemaMissingException;
 use JsonException;
 use SevenShores\Hubspot\Exceptions\BadRequest;
+use SevenShores\Hubspot\Factory;
 use yii\base\Exception;
 
 /**
@@ -23,6 +25,14 @@ use yii\base\Exception;
  */
 class LineItemService extends Component implements HubspotServiceInterface
 {
+    private Factory $hubspot;
+
+    public function __construct($config = [])
+    {
+        parent::__construct($config);
+        $this->hubspot = Plugin::getInstance()->getHubSpot();
+    }
+
     /**
      * Fetches a lineitem with it's associated lineitem ID and returns it in
      * an object with only the attributes required by Hubspot
@@ -79,22 +89,33 @@ class LineItemService extends Component implements HubspotServiceInterface
     public function upsertToHubspot($model): int|false
     {
         $properties = $this->mapProperties($model);
-        $hubspot = Plugin::getInstance()->getHubSpot();
-
         try {
-            //TODO: Add lineItem to deal
-            $res = $hubspot->lineItems()->create($properties);
+            $res = $this->hubspot->lineItems()->create($properties);
             return $res->getData()['objectId'];
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
             $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
             if ($existingObjectId) {
-                $hubspot->lineItems()->update($existingObjectId, $properties);
+                $this->hubspot->lineItems()->update($existingObjectId, $properties);
                 return $existingObjectId;
             }
         }
 
         return false;
+    }
+
+    /**
+     * Associates a LineItem with a Deal in Hubspot
+     * @throws BadRequest
+     */
+    public function associateToDeal(int $hubspotLineItemId, $hubspotDealId): void
+    {
+        $this->hubspot->crmAssociations()->create([
+            "fromObjectId" => $hubspotLineItemId,
+            "toObjectId" => $hubspotDealId,
+            "category" => "HUBSPOT_DEFINED",
+            "definitionId" => HubSpotAssocitations::LINE_ITEM_TO_DEAL,
+        ]);
     }
 }

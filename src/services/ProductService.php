@@ -13,6 +13,7 @@ use CraftCommerceObjectMissing;
 use HubspotCommerceSchemaMissingException;
 use JsonException;
 use SevenShores\Hubspot\Exceptions\BadRequest;
+use SevenShores\Hubspot\Factory;
 use yii\base\Exception;
 
 /**
@@ -23,6 +24,14 @@ use yii\base\Exception;
  */
 class ProductService extends Component implements HubspotServiceInterface
 {
+    private Factory $hubspot;
+
+    public function __construct($config = [])
+    {
+        parent::__construct($config);
+        $this->hubspot = Plugin::getInstance()->getHubSpot();
+    }
+
     /**
      * Fetches a product with it's associated product ID and returns it in
      * an object with only the attributes required by Hubspot
@@ -79,17 +88,15 @@ class ProductService extends Component implements HubspotServiceInterface
     public function upsertToHubspot($model): int|false
     {
         $properties = $this->mapProperties($model);
-        $hubspot = Plugin::getInstance()->getHubSpot();
-
         try {
-            $res = $hubspot->products()->create($properties);
+            $res = $this->hubspot->products()->create($properties);
             return $res->getData()['objectId'];
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
             $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
             if ($existingObjectId) {
-                $hubspot->products()->update($existingObjectId, $properties);
+                $this->hubspot->products()->update($existingObjectId, $properties);
                 return $existingObjectId;
             }
         }

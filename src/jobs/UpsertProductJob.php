@@ -44,7 +44,7 @@ class UpsertProductJob extends BaseJob
             }
         } catch (\Exception $e) {
             Craft::error($e->getMessage(), Plugin::HANDLE);
-            throw new \RuntimeException('Failed Upsert Product with ID: ' . $this->productId . " to Hubspot");
+            throw new \RuntimeException('Failed Upsert to Product with ID: ' . $this->productId . " to Hubspot");
         }
     }
 

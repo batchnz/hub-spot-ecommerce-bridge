@@ -6,6 +6,7 @@ use craft\commerce\records\LineItem;
 
 class HubspotLineItem extends HubspotModel
 {
+    public ?string $productId;
     public ?string $qty;
     public ?string $description;
     public ?string $price;
@@ -20,8 +21,8 @@ class HubspotLineItem extends HubspotModel
     {
         $lineItem = new self();
         $lineItem->qty = $model->qty;
-        $lineItem->description = $model->getDescription();
-        $lineItem->price = $model->getPrice();
+        $lineItem->description = $model->description;
+        $lineItem->price = $model->price;
 
         return $lineItem;
     }
@@ -30,7 +31,7 @@ class HubspotLineItem extends HubspotModel
     {
         return [
             ...parent::rules(),
-            [['qty', 'description', 'price'], 'required'],
+            [['productId', 'qty', 'description', 'price'], 'required'],
         ];
     }
 }

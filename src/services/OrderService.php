@@ -13,6 +13,7 @@ use CraftCommerceObjectMissing;
 use HubspotCommerceSchemaMissingException;
 use JsonException;
 use SevenShores\Hubspot\Exceptions\BadRequest;
+use SevenShores\Hubspot\Factory;
 use yii\base\Exception;
 
 /**
@@ -23,6 +24,14 @@ use yii\base\Exception;
  */
 class OrderService extends Component implements HubspotServiceInterface
 {
+    private Factory $hubspot;
+
+    public function __construct($config = [])
+    {
+        parent::__construct($config);
+        $this->hubspot = Plugin::getInstance()->getHubSpot();
+    }
+
     /**
      * Fetches an order with it's associated order ID and returns it in
      * an object with only the attributes required by Hubspot
@@ -79,18 +88,16 @@ class OrderService extends Component implements HubspotServiceInterface
     public function upsertToHubspot($model): int|false
     {
         $properties = $this->mapProperties($model);
-        $hubspot = Plugin::getInstance()->getHubSpot();
-
         try {
             //TODO: Add deal to pipeline
-            $res = $hubspot->deals()->create($properties);
+            $res = $this->hubspot->deals()->create($properties);
             return $res->getData()['objectId'];
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
             $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
             if ($existingObjectId) {
-                $hubspot->deals()->update($existingObjectId, $properties);
+                $this->hubspot->deals()->update($existingObjectId, $properties);
                 return $existingObjectId;
             }
         }
