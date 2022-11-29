@@ -4,6 +4,7 @@ namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\HubspotLineItem;
+use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\models\LineItemSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
@@ -105,6 +106,18 @@ class LineItemService extends Component implements HubspotServiceInterface
             }
         }
 
+        return false;
+    }
+
+    /**
+     * Deletes a line item from Hubspot.
+     *
+     * @param HubspotProduct $model
+     * @return int|false
+     */
+    public function deleteFromHubspot($model): int|false
+    {
+        // TODO: Implement deleteFromHubspot() method.
         return false;
     }
 

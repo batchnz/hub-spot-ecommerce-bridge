@@ -4,6 +4,7 @@ namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\HubspotOrder;
+use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\models\OrderSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
@@ -112,15 +113,29 @@ class OrderService extends Component implements HubspotServiceInterface
     }
 
     /**
-     * Deletes line items from a deal in Hubspot
+     * Deletes a deal from Hubspot.
+     *
+     * @param HubspotProduct $model
+     * @return int|false
+     */
+    public function deleteFromHubspot($model): int|false
+    {
+        // TODO: Implement deleteFromHubspot() method.
+        return false;
+    }
+
+    /**
+     * Deletes line items from a Deal in Hubspot. This deletes with in batches with a max limit of 100;
      *
      * @throws BadRequest
      */
     public function deleteLineItemsFromHubspot(int $dealId): void
     {
-        $res = $this->hubspot->crmAssociations()->get($dealId, CrmAssociations::DEAL_TO_LINE_ITEM, ['limit' => self::MAX_LIMIT]);
-        $lineItemIds = $res->getData()?->results ?? [];
-
-        $this->hubspot->lineItems()->deleteBatch($lineItemIds);
+        do {
+            $res = $this->hubspot->crmAssociations()->get($dealId, CrmAssociations::DEAL_TO_LINE_ITEM, ['limit' => self::MAX_LIMIT]);
+            $lineItemIds = $res->getData()?->results ?? [];
+            $hasMore = $res->getData()?->hasMore;
+            $this->hubspot->lineItems()->deleteBatch($lineItemIds);
+        } while ($hasMore);
     }
 }

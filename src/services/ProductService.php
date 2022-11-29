@@ -92,7 +92,7 @@ class ProductService extends Component implements HubspotServiceInterface
     {
         $properties = $this->mapProperties($model);
         try {
-            $res = $this->hubspot->products()->create($properties);
+            $res = $this->hubspot->products()->sea;
             return $res->getData()->objectId;
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
@@ -104,6 +104,18 @@ class ProductService extends Component implements HubspotServiceInterface
             }
         }
 
+        return false;
+    }
+
+    /**
+     * Deletes a product from Hubspot.
+     *
+     * @param HubspotProduct $model
+     * @return int|false
+     */
+    public function deleteFromHubspot($model): int|false
+    {
+        // TODO: Implement deleteFromHubspot() method.
         return false;
     }
 }

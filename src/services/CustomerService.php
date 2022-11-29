@@ -5,6 +5,7 @@ namespace batchnz\hubspotecommercebridge\services;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\CustomerSettings;
 use batchnz\hubspotecommercebridge\models\HubspotCustomer;
+use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
@@ -105,6 +106,18 @@ class CustomerService extends Component implements HubspotServiceInterface
             }
         }
 
+        return false;
+    }
+
+    /**
+     * Deletes a contact from Hubspot.
+     *
+     * @param HubspotProduct $model
+     * @return int|false
+     */
+    public function deleteFromHubspot($model): int|false
+    {
+        // TODO: Implement deleteFromHubspot() method.
         return false;
     }
 
