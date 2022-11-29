@@ -67,7 +67,7 @@ class OrderService extends Component implements HubspotServiceInterface
 
         $properties = [];
 
-        foreach (array_keys($orderSettings->attributes) as $key) {
+        foreach ($orderSettings->getArrayKeys() as $key) {
             if (!$model[$key]) {
                 continue;
             }
@@ -92,7 +92,6 @@ class OrderService extends Component implements HubspotServiceInterface
     {
         $properties = $this->mapProperties($model);
         try {
-            //TODO: Add deal to pipeline
             $res = $this->hubspot->deals()->create($properties);
             return $res->getData()->dealId;
         } catch (BadRequest $e) {

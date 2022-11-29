@@ -92,6 +92,7 @@ class OrdersController extends Controller
 
         $orderSettings = new OrderSettings();
         $orderSettings->attributes = $data;
+        $orderSettings->orderStages = $data['orderStages'] ?? [];
 
         if (! $orderSettings->validate()) {
             return $this->_redirectError($orderSettings, $orderSettings->getErrors());

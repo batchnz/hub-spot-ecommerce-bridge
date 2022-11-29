@@ -24,6 +24,8 @@ class OrderSettings extends Model
     public ?string $createDate = null;
     public ?string $orderShortNumber = null;
 
+    public ?array $orderStages = [];
+
     public function __construct()
     {
         parent::__construct();
@@ -58,6 +60,7 @@ class OrderSettings extends Model
         $orderSettings->discountCode = $settings->discountCode ?? null;
         $orderSettings->createDate = $settings->createDate ?? null;
         $orderSettings->orderShortNumber = $settings->orderShortNumber ?? null;
+        $orderSettings->orderStages = (array)($settings->orderStages ?? []);
 
         return $orderSettings;
     }
@@ -74,7 +77,16 @@ class OrderSettings extends Model
             ['totalPrice', 'compare', 'compareValue' => self::TOTAL_PRICE],
             ['dealType', 'compare', 'compareValue' => self::DEAL_TYPE],
 
-            [array_keys($this->attributes), 'string'],
+            [$this->getArrayKeys(), 'string'],
         ];
+    }
+
+    /**
+     * Returns all array keys that have a property in Hubspot
+     * @return array
+     */
+    public function getArrayKeys(): array
+    {
+        return array_keys($this->getAttributes(null, ['orderStages']));
     }
 }
