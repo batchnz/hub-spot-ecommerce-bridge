@@ -107,8 +107,6 @@ class LineItemsController extends Controller
             return $this->_redirectError($lineItemSettings, $lineItemSettings->getErrors());
         }
 
-        //TODO: Create a customer unique identifier field like for the Orders
-
         $this->setSuccessFlash('Line Item settings saved.');
 
         return $this->redirectToPostedUrl();

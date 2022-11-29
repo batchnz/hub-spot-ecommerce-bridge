@@ -7,6 +7,7 @@ use batchnz\hubspotecommercebridge\models\HubspotOrder;
 use batchnz\hubspotecommercebridge\models\OrderSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
+use Craft;
 use craft\base\Component;
 use craft\commerce\elements\Order;
 use CraftCommerceObjectMissing;
@@ -14,6 +15,7 @@ use HubspotCommerceSchemaMissingException;
 use JsonException;
 use SevenShores\Hubspot\Exceptions\BadRequest;
 use SevenShores\Hubspot\Factory;
+use SevenShores\Hubspot\Resources\CrmAssociations;
 use yii\base\Exception;
 
 /**
@@ -24,6 +26,8 @@ use yii\base\Exception;
  */
 class OrderService extends Component implements HubspotServiceInterface
 {
+    public const MAX_LIMIT = 100;
+
     private Factory $hubspot;
 
     public function __construct($config = [])
@@ -105,5 +109,18 @@ class OrderService extends Component implements HubspotServiceInterface
         }
 
         return false;
+    }
+
+    /**
+     * Deletes line items from a deal in Hubspot
+     *
+     * @throws BadRequest
+     */
+    public function deleteLineItemsFromHubspot(int $dealId): void
+    {
+        $res = $this->hubspot->crmAssociations()->get($dealId, CrmAssociations::DEAL_TO_LINE_ITEM, ['limit' => self::MAX_LIMIT]);
+        $lineItemIds = $res->getData()?->results ?? [];
+
+        $this->hubspot->lineItems()->deleteBatch($lineItemIds);
     }
 }

@@ -2,7 +2,6 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotAssocitations;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\CustomerSettings;
 use batchnz\hubspotecommercebridge\models\HubspotCustomer;
@@ -15,6 +14,7 @@ use HubspotCommerceSchemaMissingException;
 use JsonException;
 use SevenShores\Hubspot\Exceptions\BadRequest;
 use SevenShores\Hubspot\Factory;
+use SevenShores\Hubspot\Resources\CrmAssociations;
 use yii\base\Exception;
 
 /**
@@ -118,7 +118,7 @@ class CustomerService extends Component implements HubspotServiceInterface
             "fromObjectId" => (string)$hubspotContactId,
             "toObjectId" => (string)$hubspotDealId,
             "category" => "HUBSPOT_DEFINED",
-            "definitionId" => (string)HubSpotAssocitations::CONTACT_TO_DEAL,
+            "definitionId" => (string)CrmAssociations::CONTACT_TO_DEAL,
         ]);
     }
 }

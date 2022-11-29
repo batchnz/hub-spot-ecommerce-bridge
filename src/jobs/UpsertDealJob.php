@@ -55,8 +55,9 @@ class UpsertDealJob extends BaseJob
             }
         }
 
-        foreach ($lineItems as $lineItem) {
+        $orderService->deleteLineItemsFromHubspot($hubspotDealId);
 
+        foreach ($lineItems as $lineItem) {
             $craftProductId = $lineItem->getPurchasable()?->getId();
             $hubspotProductModel = $productService->fetch($craftProductId);
             $hubspotProductId = $productService->upsertToHubspot($hubspotProductModel);

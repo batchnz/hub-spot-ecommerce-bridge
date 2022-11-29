@@ -2,7 +2,6 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
-use batchnz\hubspotecommercebridge\enums\HubSpotAssocitations;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\HubspotLineItem;
 use batchnz\hubspotecommercebridge\models\LineItemSettings;
@@ -15,6 +14,7 @@ use HubspotCommerceSchemaMissingException;
 use JsonException;
 use SevenShores\Hubspot\Exceptions\BadRequest;
 use SevenShores\Hubspot\Factory;
+use SevenShores\Hubspot\Resources\CrmAssociations;
 use yii\base\Exception;
 
 /**
@@ -118,7 +118,7 @@ class LineItemService extends Component implements HubspotServiceInterface
             "fromObjectId" => (string)$hubspotLineItemId,
             "toObjectId" => (string)$hubspotDealId,
             "category" => "HUBSPOT_DEFINED",
-            "definitionId" => (string)HubSpotAssocitations::LINE_ITEM_TO_DEAL,
+            "definitionId" => (string)CrmAssociations::LINE_ITEM_TO_DEAL,
         ]);
     }
 }
