@@ -6,13 +6,14 @@ use craft\commerce\elements\Order;
 
 class HubspotOrder extends HubspotModel
 {
+    public ?string $orderName;
     public ?string $orderStage;
     public ?string $totalPrice;
     public ?string $dealType = 'existingbusiness';
     public ?string $orderNumber;
     public ?string $discountAmount;
     public ?string $discountCode = null;
-    public ?string $dateCreated = null;
+    public ?string $createDate = null;
     public ?string $orderShortNumber = null;
 
     /**
@@ -23,14 +24,14 @@ class HubspotOrder extends HubspotModel
      */
     public static function fromCraftModel($model): self
     {
-        //TODO link the properties imported to the properties set in settings
-        //TODO fix up the format of this data so they all have the correct data type (e.g. String instead of integer)
         $deal = new self();
+        $deal->orderName = $model->getShortNumber();
+        //TODO: Order stage
         $deal->orderStage = '';
-        $deal->totalPrice = $model->getTotalPrice();
-        $deal->orderNumber = $model->number;
-        $deal->discountAmount = $model->getTotalDiscount();
-        $deal->dateCreated = (strtotime($model->dateCreated) * 1000)."";
+        $deal->totalPrice = (string)$model->getTotalPrice();
+        $deal->orderNumber = (string)$model->number;
+        $deal->discountAmount = (string)$model->getTotalDiscount();
+        $deal->createDate = (string)(strtotime($model->dateCreated->getTimestamp()) * 1000);
         $deal->orderShortNumber = $model->getShortNumber();
 
         return $deal;
@@ -40,7 +41,7 @@ class HubspotOrder extends HubspotModel
     {
         return [
             ...parent::rules(),
-            [['orderStage', 'totalPrice', 'dealType', 'orderNumber', 'discountAmount'], 'required'],
+            [['orderNumber', 'orderName', 'orderStage', 'totalPrice', 'dealType', 'orderNumber', 'discountAmount'], 'required'],
         ];
     }
 }

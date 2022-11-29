@@ -28,7 +28,8 @@ class HubspotCustomer extends HubspotModel
         $contact->email = (string)$model->email;
         $contact->phoneNumber = (string)$model->phoneNumberPrimary;
         $contact->address = (string)$model->address;
-        $contact->city = (string)($model->getAddresses()[0]->locality ?? null);
+        $contact->city = $model->getAddresses()[0]->locality ?? '';
+        $contact->business = $model->getAddresses()[0]->locality ?? '';
 
         return $contact;
     }

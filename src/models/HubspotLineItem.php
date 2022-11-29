@@ -20,9 +20,9 @@ class HubspotLineItem extends HubspotModel
     public static function fromCraftModel($model): self
     {
         $lineItem = new self();
-        $lineItem->qty = $model->qty;
+        $lineItem->qty = (string)$model->qty;
         $lineItem->description = $model->description;
-        $lineItem->price = $model->price;
+        $lineItem->price = (string)$model->price;
 
         return $lineItem;
     }
