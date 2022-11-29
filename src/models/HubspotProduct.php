@@ -2,11 +2,9 @@
 
 namespace batchnz\hubspotecommercebridge\models;
 
-use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
-use craft\base\Model;
 use craft\commerce\elements\Variant;
 
-class HubspotProduct extends Model
+class HubspotProduct extends HubspotModel
 {
     public string $sku;
     public ?string $price;
@@ -16,39 +14,31 @@ class HubspotProduct extends Model
     public ?string $sheen = null;
     public ?string $size_litres = null;
 
-    public function __construct()
-    {
-        parent::__construct();
-    }
-
     /**
      * Returns a new model from the passed HubspotCommerceObject
      *
-     * @param HubspotCommerceObject $object A Hubspot Commerce object
-     *
+     * @param Variant $model
      * @return self
      */
-    public static function fromCraftProduct(Variant $variant): self
+    public static function fromCraftModel($model): self
     {
         $product = new self();
-        $product->sku = $variant->sku;
-        $product->price = (string)$variant->price;
-        $product->title = (string)$variant->title;
-        $product->size = (string)$variant->size?->one()?->title;
-        $product->colour = (string)($variant->paintColour?->one()?->title ?? $variant->coatingColour?->one()?->title);
-        $product->sheen = (string)($variant->paintSheen?->one()?->title ?? $variant->coatingSheen?->one()?->title);
-        $product->size_litres = (string)$variant->size?->one()?->sizeInLitres;
+        $product->sku = $model->sku;
+        $product->price = (string)$model->price;
+        $product->title = (string)$model->title;
+        $product->size = (string)$model->size?->one()?->title;
+        $product->colour = (string)($model->paintColour?->one()?->title ?? $model->coatingColour?->one()?->title);
+        $product->sheen = (string)($model->paintSheen?->one()?->title ?? $model->coatingSheen?->one()?->title);
+        $product->size_litres = (string)$model->size?->one()?->sizeInLitres;
 
         return $product;
     }
 
     public function rules(): array
     {
-        parent::rules();
-
         return [
+            ...parent::rules(),
             [['sku', 'price', 'title'], 'required'],
-            [array_keys($this->attributes), 'string'],
         ];
     }
 }

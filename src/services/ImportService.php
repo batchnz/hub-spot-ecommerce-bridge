@@ -276,39 +276,6 @@ class ImportService extends Component
     }
 
     /**
-     * Prepares object data to be in the correct form of the messages which will be sent in the request
-     * If there are more objects than the max batch size, then creates batches of messages to be sent
-     * Returns an array of batches to be sent
-     *
-     * @param string $objectType
-     * @param string $action
-     * @param array $objects
-     * @return array
-     */
-    public function prepareMessages(string $objectType, string $action, array $objects): array
-    {
-        $functionName = $this->normalizeObjectType($objectType);
-
-        if (!method_exists(self::class, $functionName)) {
-            throw new \Exception('method ' . $functionName . ' does not exist');
-        }
-
-        $messages = array_map([self::class, $functionName], $objects, array_fill(0, count($objects), $action));
-
-        //Removes any empty arrays if there are any
-        $messages = array_filter($messages);
-
-        // If the number of objects are less than the max batch size, only one batch needs to be made, return it
-        if (count($messages) <= self::MAX_BATCH_SIZE) {
-            //Needs to be an array as in this case there is an array of 1 batch
-            return [$messages];
-        }
-
-        //Batches need to be made with the max batch size
-        return array_chunk($messages, self::MAX_BATCH_SIZE, false);
-    }
-
-    /**
      * Handle importing of all data. Queries the for all of the necessary datatypes
      * and uses to import the necessary data and associations into HubSpot. The import will be
      * sent to the queue as a job.
