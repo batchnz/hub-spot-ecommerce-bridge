@@ -14,6 +14,27 @@
         {{ csrfInput() }}
 
         {{ forms.textField({
+            label: 'Order Number',
+            id: 'orderNumber',
+            name: 'orderNumber',
+            placeholder: orderSettings.orderNumber,
+            value: orderSettings.orderNumber,
+            errors: orderSettings.getErrors('orderNumber'),
+            instructions: "This field will be automatically created for you in Hubspot.",
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Order Name',
+            id: 'orderName',
+            name: 'orderName',
+            placeholder: orderSettings.orderName,
+            value: orderSettings.orderName,
+            errors: orderSettings.getErrors('orderName'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
             label: 'Order Stage',
             id: 'orderStage',
             name: 'orderStage',
@@ -44,23 +65,13 @@
         }) }}
 
         {{ forms.textField({
-            label: 'Order Number',
-            id: 'orderNumber',
-            name: 'orderNumber',
-            placeholder: orderSettings.orderNumber,
-            value: orderSettings.orderNumber,
-            errors: orderSettings.getErrors('orderNumber'),
-            disabled: true,
-        }) }}
-
-        {{ forms.textField({
             label: 'Discount Amount',
             id: 'discountAmount',
             name: 'discountAmount',
             placeholder: orderSettings.discountAmount,
             value: orderSettings.discountAmount,
             errors: orderSettings.getErrors('discountAmount'),
-            disabled: true,
+            disabled: false,
         }) }}
 
         {{ forms.textField({
@@ -75,11 +86,11 @@
 
         {{ forms.textField({
             label: 'Date Created',
-            id: 'dateCreated',
-            name: 'dateCreated',
-            placeholder: orderSettings.dateCreated,
-            value: orderSettings.dateCreated,
-            errors: orderSettings.getErrors('dateCreated'),
+            id: 'createDate',
+            name: 'createDate',
+            placeholder: orderSettings.createDate,
+            value: orderSettings.createDate,
+            errors: orderSettings.getErrors('createDate'),
             disabled: false,
         }) }}
 
