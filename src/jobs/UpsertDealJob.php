@@ -50,22 +50,26 @@ class UpsertDealJob extends BaseJob
         if ($customerId) {
             $hubspotCustomerModel = $customerService->fetch($customerId);
             $hubspotContactId = $customerService->upsertToHubspot($hubspotCustomerModel);
-            $customerService->associateToDeal($hubspotContactId, $hubspotDealId);
+            if ($hubspotContactId) {
+                $customerService->associateToDeal($hubspotContactId, $hubspotDealId);
+            }
         }
 
         foreach ($lineItems as $lineItem) {
+
             $craftProductId = $lineItem->getPurchasable()?->getId();
             $hubspotProductModel = $productService->fetch($craftProductId);
             $hubspotProductId = $productService->upsertToHubspot($hubspotProductModel);
 
             $hubspotLineItemModel = $lineItemService->fetch($lineItem->id);
-            $hubspotLineItemModel->productId = $hubspotProductId;
+            $hubspotLineItemModel->productId = (string)$hubspotProductId;
             $hubspotLineItemId = $lineItemService->upsertToHubspot($hubspotLineItemModel);
+
             try {
                 $lineItemService->associateToDeal($hubspotLineItemId, $hubspotDealId);
             } catch (\Exception $e) {
                 Craft::error($e->getMessage(), Plugin::HANDLE);
-                throw new \RuntimeException('Failed to Associate LineItem with ID: ' . $lineItem->id . " to Order with ID: " . $craftOrder?->getId() . " in Hubspot");
+                throw new \RuntimeException('Failed to Associate LineItem with ID: ' . $lineItem->id . " to Order with ID: " . $craftOrder?->getId() . " in Hubspot: " . $e->getMessage());
             }
         }
     }
