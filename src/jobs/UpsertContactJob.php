@@ -22,9 +22,9 @@ use craft\queue\BaseJob;
  * @package   HubspotEcommerceBridge
  * @since     1.0.0
  */
-class UpsertProductJob extends BaseJob
+class UpsertContactJob extends BaseJob
 {
-    public int $productId;
+    public int $customerId;
 
     // Public Methods
     // =========================================================================
@@ -34,17 +34,17 @@ class UpsertProductJob extends BaseJob
      */
     public function execute($queue): void
     {
-        $productService = Plugin::getInstance()->getProduct();
+        $customerService = Plugin::getInstance()->getCustomer();
 
         try {
-            $hubspotProduct = $productService->fetch($this->productId);
-            $success = $productService->upsertToHubspot($hubspotProduct);
+            $hubspotCustomer = $customerService->fetch($this->customerId);
+            $success = $customerService->upsertToHubspot($hubspotCustomer);
             if (!$success) {
                 throw new \RuntimeException();
             }
         } catch (\Exception $e) {
             Craft::error($e->getMessage(), Plugin::HANDLE);
-            throw new \RuntimeException('Failed Upsert Product with ID: ' . $this->productId . " to Hubspot");
+            throw new \RuntimeException('Failed Upsert Customer with ID: ' . $this->customerId . " to Hubspot");
         }
     }
 
@@ -57,6 +57,6 @@ class UpsertProductJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('hub-spot-ecommerce-bridge', 'Upsert Craft Commerce Product to HubSpot');
+        return Craft::t('hub-spot-ecommerce-bridge', 'Upsert Craft Commerce Contact to HubSpot');
     }
 }
