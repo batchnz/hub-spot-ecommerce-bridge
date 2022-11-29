@@ -69,6 +69,9 @@ class LineItemService extends Component implements HubspotServiceInterface
         $properties = [];
 
         foreach (array_keys($lineItemSettings->attributes) as $key) {
+            if (!$model[$key]) {
+                continue;
+            }
             $properties[] = [
                 'name' => $lineItemSettings[$key],
                 'value' => $model[$key],
@@ -91,7 +94,7 @@ class LineItemService extends Component implements HubspotServiceInterface
         $properties = $this->mapProperties($model);
         try {
             $res = $this->hubspot->lineItems()->create($properties);
-            return $res->getData()['objectId'];
+            return $res->getData()->objectId;
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
@@ -112,10 +115,10 @@ class LineItemService extends Component implements HubspotServiceInterface
     public function associateToDeal(int $hubspotLineItemId, $hubspotDealId): void
     {
         $this->hubspot->crmAssociations()->create([
-            "fromObjectId" => $hubspotLineItemId,
-            "toObjectId" => $hubspotDealId,
+            "fromObjectId" => (string)$hubspotLineItemId,
+            "toObjectId" => (string)$hubspotDealId,
             "category" => "HUBSPOT_DEFINED",
-            "definitionId" => HubSpotAssocitations::LINE_ITEM_TO_DEAL,
+            "definitionId" => (string)HubSpotAssocitations::LINE_ITEM_TO_DEAL,
         ]);
     }
 }

@@ -69,8 +69,11 @@ class CustomerService extends Component implements HubspotServiceInterface
         $properties = [];
 
         foreach (array_keys($customerSettings->attributes) as $key) {
+            if (!$model[$key]) {
+                continue;
+            }
             $properties[] = [
-                'name' => $customerSettings[$key],
+                'property' => $customerSettings[$key],
                 'value' => $model[$key],
             ];
         }
@@ -91,11 +94,11 @@ class CustomerService extends Component implements HubspotServiceInterface
         $properties = $this->mapProperties($model);
         try {
             $res = $this->hubspot->contacts()->create($properties);
-            return $res->getData()['objectId'];
+            return $res->getData()->vid;
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
-            $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
+            $existingObjectId = $res['identityProfile']['vid'] ?? null;
             if ($existingObjectId) {
                 $this->hubspot->contacts()->update($existingObjectId, $properties);
                 return $existingObjectId;
@@ -112,10 +115,10 @@ class CustomerService extends Component implements HubspotServiceInterface
     public function associateToDeal(int $hubspotContactId, $hubspotDealId): void
     {
         $this->hubspot->crmAssociations()->create([
-            "fromObjectId" => $hubspotContactId,
-            "toObjectId" => $hubspotDealId,
+            "fromObjectId" => (string)$hubspotContactId,
+            "toObjectId" => (string)$hubspotDealId,
             "category" => "HUBSPOT_DEFINED",
-            "definitionId" => HubSpotAssocitations::CONTACT_TO_DEAL,
+            "definitionId" => (string)HubSpotAssocitations::CONTACT_TO_DEAL,
         ]);
     }
 }

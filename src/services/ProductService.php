@@ -68,6 +68,9 @@ class ProductService extends Component implements HubspotServiceInterface
         $properties = [];
 
         foreach (array_keys($productSettings->attributes) as $key) {
+            if (!$model[$key]) {
+                continue;
+            }
             $properties[] = [
                 'name' => $productSettings[$key],
                 'value' => $model[$key],
@@ -90,7 +93,7 @@ class ProductService extends Component implements HubspotServiceInterface
         $properties = $this->mapProperties($model);
         try {
             $res = $this->hubspot->products()->create($properties);
-            return $res->getData()['objectId'];
+            return $res->getData()->objectId;
         } catch (BadRequest $e) {
             // Read the exception message into a JSON object
             $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
