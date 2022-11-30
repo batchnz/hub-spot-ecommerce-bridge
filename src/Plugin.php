@@ -15,6 +15,7 @@ use batchnz\hubspotecommercebridge\listeners\CustomerListener;
 use batchnz\hubspotecommercebridge\listeners\ProductListener;
 use batchnz\hubspotecommercebridge\services\CustomerService;
 use batchnz\hubspotecommercebridge\services\LineItemService;
+use batchnz\hubspotecommercebridge\services\ManualSyncService;
 use batchnz\hubspotecommercebridge\services\OrderService;
 use batchnz\hubspotecommercebridge\services\ProductService;
 use batchnz\hubspotecommercebridge\models\Settings;
@@ -158,6 +159,13 @@ class Plugin extends CraftPlugin
         }
 
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
+            $ret['subnav']['manual-sync'] = [
+                'label' => 'Manual Sync',
+                'url' => self::HANDLE . '/manual-sync'
+            ];
+        }
+
+        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $ret['subnav']['settings'] = [
                 'label' => 'Settings',
                 'url' => self::HANDLE . '/settings'
@@ -234,6 +242,7 @@ class Plugin extends CraftPlugin
             function (RegisterUrlRulesEvent $event) {
                 $event->rules[Plugin::HANDLE] = Plugin::HANDLE . '/customers/edit';
                 $event->rules[Plugin::HANDLE . '/settings'] = Plugin::HANDLE . '/settings/edit';
+                $event->rules[Plugin::HANDLE . '/manual-sync'] = Plugin::HANDLE . '/manual-sync/edit';
                 $event->rules[Plugin::HANDLE . '/mappings'] = Plugin::HANDLE . '/customers/edit';
                 $event->rules[Plugin::HANDLE . '/mappings/customers'] = Plugin::HANDLE . '/customers/edit';
                 $event->rules[Plugin::HANDLE . '/mappings/orders'] = Plugin::HANDLE . '/orders/edit';
@@ -257,6 +266,7 @@ class Plugin extends CraftPlugin
             'customer' => CustomerService::class,
             'order' => OrderService::class,
             'lineItem' => LineItemService::class,
+            'manualSync' => ManualSyncService::class,
         ]);
     }
 
@@ -308,6 +318,16 @@ class Plugin extends CraftPlugin
     public function getLineItem(): LineItemService
     {
         return $this->get('lineItem');
+    }
+
+    /**
+     * Returns the manualSync service
+     *
+     * @return ManualSyncService
+     */
+    public function getManualSync(): ManualSyncService
+    {
+        return $this->get('manualSync');
     }
 
     protected function createSettingsModel(): ?craft\base\Model

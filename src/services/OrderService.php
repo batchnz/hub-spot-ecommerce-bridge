@@ -121,7 +121,6 @@ class OrderService extends Component implements HubspotServiceInterface
         $properties = $this->mapProperties($model);
         $existingObjectId = $this->findInHubspot($model);
         $dealInput = new SimplePublicObjectInput();
-        ray(compact('properties'));
         try {
             if ($existingObjectId) {
                 // Don't upsert the unique key
@@ -160,9 +159,6 @@ class OrderService extends Component implements HubspotServiceInterface
 
     /**
      * Deletes line items from a Deal in Hubspot. This deletes with in batches with a max limit of 100;
-     *
-     * @throws ApiException
-     * @throws \HubSpot\Client\Crm\LineItems\ApiException
      */
     public function deleteLineItemsFromHubspot(int $dealId): void
     {

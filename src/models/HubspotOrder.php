@@ -10,12 +10,12 @@ use craft\commerce\elements\Order;
 
 class HubspotOrder extends HubspotModel
 {
-    public ?string $orderName;
-    public ?string $orderStage;
-    public ?string $totalPrice;
+    public ?string $orderName = null;
+    public ?string $orderStage = null;
+    public ?string $totalPrice = null;
     public ?string $dealType = 'existingbusiness';
-    public ?string $orderNumber;
-    public ?string $discountAmount;
+    public ?string $orderNumber = null;
+    public ?string $discountAmount = null;
     public ?string $discountCode = null;
     public ?string $createDate = null;
     public ?string $orderShortNumber = null;
