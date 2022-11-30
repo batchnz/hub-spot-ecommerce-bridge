@@ -4,20 +4,22 @@ namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\HubspotOrder;
-use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\models\OrderSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
-use Craft;
 use craft\base\Component;
 use craft\commerce\elements\Order;
 use CraftCommerceObjectMissing;
+use HubSpot\Client\Crm\Deals\ApiException;
+use HubSpot\Client\Crm\Deals\Model\Filter;
+use HubSpot\Client\Crm\Deals\Model\FilterGroup;
+use HubSpot\Client\Crm\Deals\Model\PublicObjectSearchRequest;
+use HubSpot\Client\Crm\Deals\Model\SimplePublicObjectInput;
+use HubSpot\Client\Crm\LineItems\Model\BatchInputSimplePublicObjectId;
+use HubSpot\Client\Crm\LineItems\Model\SimplePublicObjectId;
 use HubspotCommerceSchemaMissingException;
-use JsonException;
-use SevenShores\Hubspot\Exceptions\BadRequest;
-use SevenShores\Hubspot\Factory;
-use SevenShores\Hubspot\Resources\CrmAssociations;
-use yii\base\Exception;
+use Hubspot\Discovery\Discovery as HubSpotApi;
+use ProcessingSettingsException;
 
 /**
  * Class OrderService
@@ -27,14 +29,28 @@ use yii\base\Exception;
  */
 class OrderService extends Component implements HubspotServiceInterface
 {
-    public const MAX_LIMIT = 100;
+    private HubSpotApi $hubspot;
+    private OrderSettings $settings;
 
-    private Factory $hubspot;
-
+    /**
+     * @throws ProcessingSettingsException
+     * @throws HubspotCommerceSchemaMissingException
+     */
     public function __construct($config = [])
     {
         parent::__construct($config);
         $this->hubspot = Plugin::getInstance()->getHubSpot();
+        $dealSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::DEAL]);
+        if (!$dealSchema) {
+            throw new HubspotCommerceSchemaMissingException('The DEAL schema is missing from the database.');
+        }
+        try {
+            $orderSettings = OrderSettings::fromHubspotObject($dealSchema);
+        } catch (\Exception $e) {
+            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.');
+        }
+        $orderSettings->validate();
+        $this->settings = $orderSettings;
     }
 
     /**
@@ -56,86 +72,112 @@ class OrderService extends Component implements HubspotServiceInterface
     /**
      * Maps properties to a format suitable to be included in the request to Hubspot
      * @param HubspotOrder $model
-     *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
      */
     public function mapProperties($model): array
     {
-        $dealSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::DEAL]);
-        if (!$dealSchema) {
-            throw new HubspotCommerceSchemaMissingException('The DEAL schema is missing from the database.');
-        }
-        $orderSettings = OrderSettings::fromHubspotObject($dealSchema);
-        $orderSettings->validate();
-
         $properties = [];
 
-        foreach ($orderSettings->getArrayKeys() as $key) {
-            if (!$model[$key]) {
-                continue;
-            }
-            $properties[] = [
-                'name' => $orderSettings[$key],
-                'value' => $model[$key],
-            ];
+        foreach ($this->settings->getArrayKeys() as $key) {
+            $properties[$this->settings[$key]] = $model[$key];
         }
 
         return $properties;
     }
 
     /**
+     * Finds a deal in hubspot using its unique key
+     *
+     * @param HubspotOrder $model
+     * @return int|false
+     */
+    public function findInHubspot($model): string|false
+    {
+        $filter = new Filter([
+            'property_name' => $this->settings[$this->settings->uniqueKey()],
+            'value' => $model[$this->settings->uniqueKey()],
+            'operator' => 'EQ',
+        ]);
+        $filterGroup = new FilterGroup([
+            'filters' => [$filter],
+        ]);
+        $searchReq = new PublicObjectSearchRequest([
+            'filter_groups' => [$filterGroup],
+        ]);
+
+        try {
+            $res = $this->hubspot->crm()->deals()->searchApi()->doSearch($searchReq);
+            return $res->getResults()[0] ? $res->getResults()[0]->getId() : false;
+        } catch (ApiException $e) {
+            return false;
+        }
+    }
+
+    /**
      * Creates a deal in Hubspot. If the deal already exists, then updates the existing deal.
      * @param HubspotOrder $model
-     *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
      */
-    public function upsertToHubspot($model): int|false
+    public function upsertToHubspot($model): string|false
     {
         $properties = $this->mapProperties($model);
+        $existingObjectId = $this->findInHubspot($model);
+        $dealInput = new SimplePublicObjectInput();
+        ray(compact('properties'));
         try {
-            $res = $this->hubspot->deals()->create($properties);
-            return $res->getData()->dealId;
-        } catch (BadRequest $e) {
-            // Read the exception message into a JSON object
-            $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
-            $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
             if ($existingObjectId) {
-                $this->hubspot->deals()->update($existingObjectId, $properties);
-                return $existingObjectId;
+                // Don't upsert the unique key
+                unset($properties[$this->settings[$this->settings->uniqueKey()]]);
+                $dealInput->setProperties($properties);
+                $res = $this->hubspot->crm()->deals()->basicApi()->update($existingObjectId, $dealInput);
+            } else {
+                $dealInput->setProperties($properties);
+                $res = $this->hubspot->crm()->deals()->basicApi()->create($dealInput);
             }
+            return $res->getId();
+        } catch (ApiException $e) {
+            return false;
         }
-
-        return false;
     }
 
     /**
      * Deletes a deal from Hubspot.
      *
-     * @param HubspotProduct $model
+     * @param HubspotOrder $model
      * @return int|false
      */
     public function deleteFromHubspot($model): int|false
     {
-        // TODO: Implement deleteFromHubspot() method.
-        return false;
+        $existingObjectId = $this->findInHubspot($model);
+        if (!$existingObjectId) {
+            return false;
+        }
+        try {
+            $this->hubspot->crm()->deals()->basicApi()->archive($existingObjectId);
+            return $existingObjectId;
+        } catch (ApiException $e) {
+            return false;
+        }
     }
 
     /**
      * Deletes line items from a Deal in Hubspot. This deletes with in batches with a max limit of 100;
      *
-     * @throws BadRequest
+     * @throws ApiException
+     * @throws \HubSpot\Client\Crm\LineItems\ApiException
      */
     public function deleteLineItemsFromHubspot(int $dealId): void
     {
-        do {
-            $res = $this->hubspot->crmAssociations()->get($dealId, CrmAssociations::DEAL_TO_LINE_ITEM, ['limit' => self::MAX_LIMIT]);
-            $lineItemIds = $res->getData()?->results ?? [];
-            $hasMore = $res->getData()?->hasMore;
-            $this->hubspot->lineItems()->deleteBatch($lineItemIds);
-        } while ($hasMore);
+        $res = $this->hubspot->apiRequest([
+            'method' => 'GET',
+            'path' => "/crm/v3/objects/deals/{$dealId}/associations/line_items"
+        ]);
+
+        $resArray = json_decode($res->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
+
+        $lineItemIds = array_map(static fn ($result) => new SimplePublicObjectId(['id' => $result['id']]), $resArray['results']);
+        ray(compact('lineItemIds'));
+        $batchLineItems = new BatchInputSimplePublicObjectId([
+            'inputs' => $lineItemIds,
+        ]);
+        $this->hubspot->crm()->lineItems()->batchApi()->archive($batchLineItems);
     }
 }

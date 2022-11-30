@@ -5,18 +5,20 @@ namespace batchnz\hubspotecommercebridge\services;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\CustomerSettings;
 use batchnz\hubspotecommercebridge\models\HubspotCustomer;
-use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\elements\User;
 use CraftCommerceObjectMissing;
+use HubSpot\Client\Crm\Contacts\ApiException;
+use HubSpot\Client\Crm\Contacts\Model\Filter;
+use HubSpot\Client\Crm\Contacts\Model\FilterGroup;
+use HubSpot\Client\Crm\Contacts\Model\PublicObjectSearchRequest;
+use HubSpot\Client\Crm\Contacts\Model\SimplePublicObjectInput;
+use HubSpot\Crm\ObjectType;
 use HubspotCommerceSchemaMissingException;
-use JsonException;
-use SevenShores\Hubspot\Exceptions\BadRequest;
-use SevenShores\Hubspot\Factory;
-use SevenShores\Hubspot\Resources\CrmAssociations;
-use yii\base\Exception;
+use Hubspot\Discovery\Discovery as HubSpotApi;
+use ProcessingSettingsException;
 
 /**
  * Class CustomerService
@@ -26,12 +28,28 @@ use yii\base\Exception;
  */
 class CustomerService extends Component implements HubspotServiceInterface
 {
-    private Factory $hubspot;
+    private HubspotApi $hubspot;
+    private CustomerSettings $settings;
 
+    /**
+     * @throws ProcessingSettingsException
+     * @throws HubspotCommerceSchemaMissingException
+     */
     public function __construct($config = [])
     {
         parent::__construct($config);
         $this->hubspot = Plugin::getInstance()->getHubSpot();
+        $contactSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::CONTACT]);
+        if (!$contactSchema) {
+            throw new HubspotCommerceSchemaMissingException('The CONTACT schema is missing from the database.');
+        }
+        try {
+            $customerSettings = CustomerSettings::fromHubspotObject($contactSchema);
+        } catch (\Exception $e) {
+            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.');
+        }
+        $customerSettings->validate();
+        $this->settings = $customerSettings;
     }
 
     /**
@@ -53,85 +71,101 @@ class CustomerService extends Component implements HubspotServiceInterface
     /**
      * Maps properties to a format suitable to be included in the request to Hubspot
      * @param HubspotCustomer $model
-     *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
      */
     public function mapProperties($model): array
     {
-        $contactSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::CONTACT]);
-        if (!$contactSchema) {
-            throw new HubspotCommerceSchemaMissingException('The CONTACT schema is missing from the database.');
-        }
-        $customerSettings = CustomerSettings::fromHubspotObject($contactSchema);
-        $customerSettings->validate();
-
         $properties = [];
 
-        foreach (array_keys($customerSettings->attributes) as $key) {
-            if (!$model[$key]) {
-                continue;
-            }
-            $properties[] = [
-                'property' => $customerSettings[$key],
-                'value' => $model[$key],
-            ];
+        foreach (array_keys($this->settings->attributes) as $key) {
+            $properties[$this->settings[$key]] = $model[$key];
         }
 
         return $properties;
     }
 
     /**
+     * Finds a customer in hubspot using its unique key
+     *
+     * @param HubspotCustomer $model
+     * @return int|false
+     */
+    public function findInHubspot($model): string|false
+    {
+        $filter = new Filter([
+            'property_name' => $this->settings[$this->settings->uniqueKey()],
+            'value' => $model[$this->settings->uniqueKey()],
+            'operator' => 'EQ',
+        ]);
+        $filterGroup = new FilterGroup([
+            'filters' => [$filter],
+        ]);
+        $searchReq = new PublicObjectSearchRequest([
+            'filter_groups' => [$filterGroup],
+        ]);
+
+        try {
+            $res = $this->hubspot->crm()->contacts()->searchApi()->doSearch($searchReq);
+            return $res->getResults()[0] ? $res->getResults()[0]->getId() : false;
+        } catch (ApiException $e) {
+            return false;
+        }
+    }
+
+    /**
      * Creates a contact in Hubspot. If the contact already exists, then updates the existing contact.
      * @param HubspotCustomer $model
-     *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
      */
-    public function upsertToHubspot($model): int|false
+    public function upsertToHubspot($model): string|false
     {
         $properties = $this->mapProperties($model);
+        $existingObjectId = $this->findInHubspot($model);
+        $contactInput = new SimplePublicObjectInput();
         try {
-            $res = $this->hubspot->contacts()->create($properties);
-            return $res->getData()->vid;
-        } catch (BadRequest $e) {
-            // Read the exception message into a JSON object
-            $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
-            $existingObjectId = $res['identityProfile']['vid'] ?? null;
             if ($existingObjectId) {
-                $this->hubspot->contacts()->update($existingObjectId, $properties);
-                return $existingObjectId;
+                // Don't upsert the unique key
+                unset($properties[$this->settings[$this->settings->uniqueKey()]]);
+                $contactInput->setProperties($properties);
+                $res = $this->hubspot->crm()->contacts()->basicApi()->update($existingObjectId, $contactInput);
+            } else {
+                $contactInput->setProperties($properties);
+                $res = $this->hubspot->crm()->contacts()->basicApi()->create($contactInput);
             }
+            return $res->getId();
+        } catch (ApiException $e) {
+            return false;
         }
-
-        return false;
     }
 
     /**
      * Deletes a contact from Hubspot.
      *
-     * @param HubspotProduct $model
+     * @param HubspotCustomer $model
      * @return int|false
      */
     public function deleteFromHubspot($model): int|false
     {
-        // TODO: Implement deleteFromHubspot() method.
-        return false;
+        $existingObjectId = $this->findInHubspot($model);
+        if (!$existingObjectId) {
+            return false;
+        }
+        try {
+            $this->hubspot->crm()->contacts()->basicApi()->archive($existingObjectId);
+            return $existingObjectId;
+        } catch (ApiException $e) {
+            return false;
+        }
     }
 
     /**
      * Associates a Contact with a Deal in Hubspot
-     * @throws BadRequest
+     * @throws ApiException
      */
     public function associateToDeal(int $hubspotContactId, $hubspotDealId): void
     {
-        $this->hubspot->crmAssociations()->create([
-            "fromObjectId" => (string)$hubspotContactId,
-            "toObjectId" => (string)$hubspotDealId,
-            "category" => "HUBSPOT_DEFINED",
-            "definitionId" => (string)CrmAssociations::CONTACT_TO_DEAL,
-        ]);
+        $this->hubspot
+            ->crm()
+            ->contacts()
+            ->associationsApi()
+            ->create($hubspotContactId, ObjectType::DEALS, $hubspotDealId, 'contact_to_deal');
     }
 }

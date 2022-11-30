@@ -7,14 +7,18 @@ use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\models\ProductSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
+use Craft;
 use craft\base\Component;
 use craft\commerce\elements\Variant;
 use CraftCommerceObjectMissing;
+use HubSpot\Client\Crm\Products\ApiException;
+use HubSpot\Client\Crm\Products\Model\Filter;
+use HubSpot\Client\Crm\Products\Model\FilterGroup;
+use HubSpot\Client\Crm\Products\Model\PublicObjectSearchRequest;
+use HubSpot\Client\Crm\Products\Model\SimplePublicObjectInput;
 use HubspotCommerceSchemaMissingException;
-use JsonException;
-use SevenShores\Hubspot\Exceptions\BadRequest;
-use SevenShores\Hubspot\Factory;
-use yii\base\Exception;
+use Hubspot\Discovery\Discovery as HubSpotApi;
+use ProcessingSettingsException;
 
 /**
  * Class ProductService
@@ -24,12 +28,28 @@ use yii\base\Exception;
  */
 class ProductService extends Component implements HubspotServiceInterface
 {
-    private Factory $hubspot;
+    private HubSpotApi $hubspot;
+    private ProductSettings $settings;
 
+    /**
+     * @throws HubspotCommerceSchemaMissingException
+     * @throws ProcessingSettingsException
+     */
     public function __construct($config = [])
     {
         parent::__construct($config);
         $this->hubspot = Plugin::getInstance()->getHubSpot();
+        $productSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::PRODUCT]);
+        if (!$productSchema) {
+            throw new HubspotCommerceSchemaMissingException('The PRODUCT schema is missing from the database.');
+        }
+        try {
+            $productSettings = ProductSettings::fromHubspotObject($productSchema);
+        } catch (\Exception $e) {
+            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.');
+        }
+        $productSettings->validate();
+        $this->settings = $productSettings;
     }
 
     /**
@@ -51,60 +71,69 @@ class ProductService extends Component implements HubspotServiceInterface
     /**
      * Maps properties to a format suitable to be included in the request to Hubspot
      * @param HubspotProduct $model
-     *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
      */
     public function mapProperties($model): array
     {
-        $productSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::PRODUCT]);
-        if (!$productSchema) {
-            throw new HubspotCommerceSchemaMissingException('The PRODUCT schema is missing from the database.');
-        }
-        $productSettings = ProductSettings::fromHubspotObject($productSchema);
-        $productSettings->validate();
-
         $properties = [];
 
-        foreach (array_keys($productSettings->attributes) as $key) {
-            if (!$model[$key]) {
-                continue;
-            }
-            $properties[] = [
-                'name' => $productSettings[$key],
-                'value' => $model[$key],
-            ];
+        foreach (array_keys($this->settings->attributes) as $key) {
+            $properties[$this->settings[$key]] = $model[$key];
         }
 
         return $properties;
     }
 
     /**
+     * Finds a product in hubspot using its unique key
+     *
+     * @param HubspotProduct $model
+     * @return int|false
+     */
+    public function findInHubspot($model): string|false
+    {
+        $filter = new Filter([
+           'property_name' => $this->settings[$this->settings->uniqueKey()],
+           'value' => $model[$this->settings->uniqueKey()],
+           'operator' => 'EQ',
+        ]);
+        $filterGroup = new FilterGroup([
+            'filters' => [$filter],
+        ]);
+        $searchReq = new PublicObjectSearchRequest([
+            'filter_groups' => [$filterGroup],
+        ]);
+
+        try {
+            $res = $this->hubspot->crm()->products()->searchApi()->doSearch($searchReq);
+            return $res->getResults()[0] ? $res->getResults()[0]->getId() : false;
+        } catch (ApiException $e) {
+            return false;
+        }
+    }
+
+    /**
      * Creates a product in Hubspot. If the product already exists, then updates the existing product.
      * @param HubspotProduct $model
-     *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
      */
-    public function upsertToHubspot($model): int|false
+    public function upsertToHubspot($model): string|false
     {
         $properties = $this->mapProperties($model);
+        $existingObjectId = $this->findInHubspot($model);
+        $productInput = new SimplePublicObjectInput();
         try {
-            $res = $this->hubspot->products()->sea;
-            return $res->getData()->objectId;
-        } catch (BadRequest $e) {
-            // Read the exception message into a JSON object
-            $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
-            $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
             if ($existingObjectId) {
-                $this->hubspot->products()->update($existingObjectId, $properties);
-                return $existingObjectId;
+                // Don't upsert the unique key
+                unset($properties[$this->settings[$this->settings->uniqueKey()]]);
+                $productInput->setProperties($properties);
+                $res = $this->hubspot->crm()->products()->basicApi()->update($existingObjectId, $productInput);
+            } else {
+                $productInput->setProperties($properties);
+                $res = $this->hubspot->crm()->products()->basicApi()->create($productInput);
             }
+            return $res->getId();
+        } catch (ApiException $e) {
+            return false;
         }
-
-        return false;
     }
 
     /**
@@ -115,7 +144,15 @@ class ProductService extends Component implements HubspotServiceInterface
      */
     public function deleteFromHubspot($model): int|false
     {
-        // TODO: Implement deleteFromHubspot() method.
-        return false;
+        $existingObjectId = $this->findInHubspot($model);
+        if (!$existingObjectId) {
+            return false;
+        }
+        try {
+            $this->hubspot->crm()->products()->basicApi()->archive($existingObjectId);
+            return $existingObjectId;
+        } catch (ApiException $e) {
+            return false;
+        }
     }
 }

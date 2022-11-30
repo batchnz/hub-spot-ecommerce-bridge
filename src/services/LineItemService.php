@@ -4,19 +4,18 @@ namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
 use batchnz\hubspotecommercebridge\models\HubspotLineItem;
-use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\models\LineItemSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\commerce\records\LineItem;
 use CraftCommerceObjectMissing;
+use HubSpot\Client\Crm\LineItems\ApiException;
+use HubSpot\Client\Crm\LineItems\Model\SimplePublicObjectInput;
+use HubSpot\Crm\ObjectType;
 use HubspotCommerceSchemaMissingException;
-use JsonException;
-use SevenShores\Hubspot\Exceptions\BadRequest;
-use SevenShores\Hubspot\Factory;
-use SevenShores\Hubspot\Resources\CrmAssociations;
-use yii\base\Exception;
+use Hubspot\Discovery\Discovery as HubSpotApi;
+use ProcessingSettingsException;
 
 /**
  * Class LineItemService
@@ -26,16 +25,32 @@ use yii\base\Exception;
  */
 class LineItemService extends Component implements HubspotServiceInterface
 {
-    private Factory $hubspot;
+    private HubSpotApi $hubspot;
+    private LineItemSettings $settings;
 
+    /**
+     * @throws ProcessingSettingsException
+     * @throws HubspotCommerceSchemaMissingException
+     */
     public function __construct($config = [])
     {
         parent::__construct($config);
         $this->hubspot = Plugin::getInstance()->getHubSpot();
+        $lineItemSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::LINE_ITEM]);
+        if (!$lineItemSchema) {
+            throw new HubspotCommerceSchemaMissingException('The LINE_ITEM schema is missing from the database.');
+        }
+        try {
+            $lineItemSettings = LineItemSettings::fromHubspotObject($lineItemSchema);
+        } catch (\Exception $e) {
+            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.');
+        }
+        $lineItemSettings->validate();
+        $this->settings = $lineItemSettings;
     }
 
     /**
-     * Fetches a lineitem with it's associated lineitem ID and returns it in
+     * Fetches a line item with it's associated line item ID and returns it in
      * an object with only the attributes required by Hubspot
      * @param int $id LineItem ID
      * @return HubspotLineItem
@@ -53,66 +68,50 @@ class LineItemService extends Component implements HubspotServiceInterface
     /**
      * Maps properties to a format suitable to be included in the request to Hubspot
      * @param HubspotLineItem $model
-     *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
      */
     public function mapProperties($model): array
     {
-        $lineItemSchema = HubspotCommerceObject::findOne(['objectType' => HubSpotObjectTypes::LINE_ITEM]);
-        if (!$lineItemSchema) {
-            throw new HubspotCommerceSchemaMissingException('The LINE_ITEM schema is missing from the database.');
-        }
-        $lineItemSettings = LineItemSettings::fromHubspotObject($lineItemSchema);
-        $lineItemSettings->validate();
-
         $properties = [];
 
-        foreach (array_keys($lineItemSettings->attributes) as $key) {
-            if (!$model[$key]) {
-                continue;
-            }
-            $properties[] = [
-                'name' => $lineItemSettings[$key],
-                'value' => $model[$key],
-            ];
+        foreach (array_keys($this->settings->attributes) as $key) {
+            $properties[$this->settings[$key]] = $model[$key];
         }
 
         return $properties;
     }
 
     /**
-     * Creates a lineitem in Hubspot. If the lineitem already exists, then lineitem the existing deal.
-     * @param HubspotLineItem $model
+     * Finds a line item in hubspot using its unique key
      *
-     * @throws Exception
-     * @throws JsonException
-     * @throws HubspotCommerceSchemaMissingException
+     * @param HubspotLineItem $model
+     * @return int|false
      */
-    public function upsertToHubspot($model): int|false
+    public function findInHubspot($model): string|false
+    {
+        // TODO: Define this function if it is ever needed to find line items in Hubspot
+        return false;
+    }
+
+    /**
+     * Creates a line item in Hubspot. If the line item already exists, then line item the existing deal.
+     * @param HubspotLineItem $model
+     */
+    public function upsertToHubspot($model): string|false
     {
         $properties = $this->mapProperties($model);
+        $lineItemInput = new SimplePublicObjectInput();
+        $lineItemInput->setProperties($properties);
         try {
-            $res = $this->hubspot->lineItems()->create($properties);
-            return $res->getData()->objectId;
-        } catch (BadRequest $e) {
-            // Read the exception message into a JSON object
-            $res = json_decode($e->getResponse()->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
-            $existingObjectId = $res['errorTokens']['existingObjectId'][0] ?? null;
-            if ($existingObjectId) {
-                $this->hubspot->lineItems()->update($existingObjectId, $properties);
-                return $existingObjectId;
-            }
+            return $this->hubspot->crm()->lineItems()->basicApi()->create($lineItemInput)->getId();
+        } catch (ApiException $e) {
+            return false;
         }
-
-        return false;
     }
 
     /**
      * Deletes a line item from Hubspot.
      *
-     * @param HubspotProduct $model
+     * @param HubspotLineItem $model
      * @return int|false
      */
     public function deleteFromHubspot($model): int|false
@@ -123,15 +122,14 @@ class LineItemService extends Component implements HubspotServiceInterface
 
     /**
      * Associates a LineItem with a Deal in Hubspot
-     * @throws BadRequest
+     * @throws ApiException
      */
     public function associateToDeal(int $hubspotLineItemId, $hubspotDealId): void
     {
-        $this->hubspot->crmAssociations()->create([
-            "fromObjectId" => (string)$hubspotLineItemId,
-            "toObjectId" => (string)$hubspotDealId,
-            "category" => "HUBSPOT_DEFINED",
-            "definitionId" => (string)CrmAssociations::LINE_ITEM_TO_DEAL,
-        ]);
+        $this->hubspot
+            ->crm()
+            ->lineItems()
+            ->associationsApi()
+            ->create($hubspotLineItemId, ObjectType::DEALS, $hubspotDealId, 'line_item_to_deal');
     }
 }

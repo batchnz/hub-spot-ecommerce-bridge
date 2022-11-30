@@ -41,11 +41,22 @@ class UpsertDealJob extends BaseJob
         $lineItemService = Plugin::getInstance()->getLineItem();
 
         $craftOrder = Order::findOne(['id' => $this->orderId]);
-        $customerId = $craftOrder?->getCustomer()?->getId();
-        $lineItems = $craftOrder?->getLineItems();
+
+        if (!$craftOrder) {
+            Craft::error('Could not find Order with ID: ' . $this->orderId . ' in the database', Plugin::HANDLE);
+            throw new \RuntimeException('Could not find Order with ID: ' . $this->orderId . ' in the database');
+        }
+
+        $customerId = $craftOrder->getCustomer()?->getId();
+        $lineItems = $craftOrder->getLineItems();
 
         $hubspotOrderModel = $orderService->fetch($this->orderId);
         $hubspotDealId = $orderService->upsertToHubspot($hubspotOrderModel);
+
+        if (!$hubspotDealId) {
+            Craft::error('Failed to upsert Order with ID: ' . $craftOrder->getId() . ' to Hubspot', Plugin::HANDLE);
+            throw new \RuntimeException('Failed to upsert Order with ID: ' . $craftOrder->getId() . ' to Hubspot');
+        }
 
         if ($customerId) {
             $hubspotCustomerModel = $customerService->fetch($customerId);

@@ -14,27 +14,21 @@ namespace batchnz\hubspotecommercebridge;
 use batchnz\hubspotecommercebridge\listeners\CustomerListener;
 use batchnz\hubspotecommercebridge\listeners\ProductListener;
 use batchnz\hubspotecommercebridge\services\CustomerService;
-use batchnz\hubspotecommercebridge\services\ImportService;
 use batchnz\hubspotecommercebridge\services\LineItemService;
-use batchnz\hubspotecommercebridge\services\MappingService;
-use batchnz\hubspotecommercebridge\models\Settings;
 use batchnz\hubspotecommercebridge\services\OrderService;
 use batchnz\hubspotecommercebridge\services\ProductService;
-use batchnz\hubspotecommercebridge\services\SettingsService;
+use batchnz\hubspotecommercebridge\models\Settings;
 use Craft;
 use craft\base\Element;
 use craft\base\Plugin as CraftPlugin;
 use craft\commerce\elements\Order;
-
 use craft\commerce\elements\Variant;
-use craft\commerce\records\Customer;
 use craft\elements\User;
 use craft\events\RegisterUrlRulesEvent;
 use craft\helpers\App;
 use craft\helpers\UrlHelper;
-use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
+use HubSpot\Discovery\Discovery;
 use yii\base\Event;
 
 use batchnz\hubspotecommercebridge\listeners\OrderListener;
@@ -173,9 +167,9 @@ class Plugin extends CraftPlugin
         return $ret;
     }
 
-    public function getSettingsResponse(): mixed
+    public function getSettingsResponse(): \yii\web\Response
     {
-        Craft::$app->controller->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings'));
+        return Craft::$app->controller->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings'));
     }
 
     // Protected Methods
@@ -255,13 +249,10 @@ class Plugin extends CraftPlugin
 
         // Create a preconfigured instance of the HubSpot provider
         // to be injected into each instance of the api service
-        $hubspot = HubSpotFactory::createWithOAuth2Token(App::parseEnv($settings->apiKey));
+        $hubspot = \HubSpot\Factory::createWithAccessToken(App::parseEnv($settings->apiKey));
 
         $this->setComponents([
-            'mapping' => MappingService::class,
-            'import' => ImportService::class,
             'hubspot' => $hubspot,
-            'settingsService' => SettingsService::class,
             'product' => ProductService::class,
             'customer' => CustomerService::class,
             'order' => OrderService::class,
@@ -270,41 +261,11 @@ class Plugin extends CraftPlugin
     }
 
     /**
-     * Returns the mapping service
-     *
-     * @return MappingService
-     */
-    public function getMapping(): MappingService
-    {
-        return $this->get('mapping');
-    }
-
-    /**
-     * Returns the import service
-     *
-     * @return ImportService
-     */
-    public function getImport(): ImportService
-    {
-        return $this->get('import');
-    }
-
-    /**
-     * Returns the settings service
-     *
-     * @return SettingsService
-     */
-    public function getSettingsService(): SettingsService
-    {
-        return $this->get('settingsService');
-    }
-
-    /**
      * Returns the HubSpot provider
      *
-     * @return HubSpotFactory
+     * @return Discovery
      */
-    public function getHubSpot(): HubSpotFactory
+    public function getHubSpot(): Discovery
     {
         return $this->get('hubspot');
     }

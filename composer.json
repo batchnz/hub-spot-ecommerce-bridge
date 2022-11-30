@@ -26,8 +26,8 @@
     },
     "require": {
         "craftcms/cms": "^3.0.0 || ^4.0.0",
-        "hubspot/hubspot-php": "^3.2",
-      "ext-json": "*"
+      "ext-json": "*",
+        "hubspot/api-client": "^9.0"
     },
     "autoload": {
         "psr-4": {
@@ -42,5 +42,11 @@
         "documentationUrl": "https://github.com/batchnz/hub-spot-ecommerce-bridge/blob/master/README.md",
         "changelogUrl": "https://raw.githubusercontent.com/batchnz/hub-spot-ecommerce-bridge/master/CHANGELOG.md",
         "class": "batchnz\\hubspotecommercebridge\\Plugin"
+    },
+    "config": {
+        "allow-plugins": {
+            "yiisoft/yii2-composer": true,
+            "craftcms/plugin-installer": true
+        }
     }
 }
