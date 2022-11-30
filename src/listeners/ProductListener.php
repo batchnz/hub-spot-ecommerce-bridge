@@ -11,11 +11,11 @@
 
 namespace batchnz\hubspotecommercebridge\listeners;
 
+use batchnz\hubspotecommercebridge\jobs\DeleteProductJob;
 use batchnz\hubspotecommercebridge\jobs\UpsertProductJob;
 use Craft;
 use craft\commerce\elements\Variant;
 use craft\events\ModelEvent;
-use yii\base\Event;
 
 class ProductListener
 {
@@ -30,11 +30,14 @@ class ProductListener
         ]));
     }
 
-    public static function delete(Event $event): void
+    public static function delete(ModelEvent $event): void
     {
-        $variant = self::modelProduct($event->sender);
+        /** @var Variant $variant */
+        $variant = $event->sender;
         $queue = Craft::$app->getQueue();
 
-//        $queue->push();
+        $queue->push(new DeleteProductJob([
+            'productId' => $variant->id,
+        ]));
     }
 }
