@@ -26,11 +26,10 @@ class HubspotCustomer extends HubspotModel
         $contact->firstName = (string)$model->firstName;
         $contact->lastName = (string)$model->lastName;
         $contact->email = (string)$model->email;
-        $contact->phoneNumber = (string)$model->phoneNumberPrimary;
-        $contact->address = (string)$model->address;
-        //TODO: Check these properties are mapping correctly
-        $contact->city = $model->getAddresses()[0]->locality ?? '';
-        $contact->business = $model->getAddresses()[0]->locality ?? '';
+        $contact->phoneNumber = $model->getAddresses()[0]?->phoneNumberPrimary ?? '';
+        $contact->address = $model->getAddresses()[0]?->addressLine1 ?? '';
+        $contact->city = $model->getAddresses()[0]?->locality ?? '';
+        $contact->business = $model->getAddresses()[0]?->organization ?? '';
 
         return $contact;
     }
