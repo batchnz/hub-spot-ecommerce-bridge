@@ -16,6 +16,7 @@ use batchnz\hubspotecommercebridge\jobs\UpsertProductJob;
 use Craft;
 use craft\commerce\elements\Variant;
 use craft\events\ModelEvent;
+use yii\base\Event;
 
 class ProductListener
 {
@@ -30,7 +31,7 @@ class ProductListener
         ]));
     }
 
-    public static function delete(ModelEvent $event): void
+    public static function delete(Event $event): void
     {
         /** @var Variant $variant */
         $variant = $event->sender;
@@ -38,6 +39,7 @@ class ProductListener
 
         $queue->push(new DeleteProductJob([
             'productId' => $variant->id,
+            'sku' => $variant->sku,
         ]));
     }
 }

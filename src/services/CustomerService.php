@@ -2,23 +2,23 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
+use batchnz\hubspotecommercebridge\enums\HubSpotAssociations;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\exceptions\CraftCommerceObjectMissing;
+use batchnz\hubspotecommercebridge\exceptions\HubspotCommerceSchemaMissingException;
+use batchnz\hubspotecommercebridge\exceptions\ProcessingSettingsException;
 use batchnz\hubspotecommercebridge\models\CustomerSettings;
 use batchnz\hubspotecommercebridge\models\HubspotCustomer;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\elements\User;
-use CraftCommerceObjectMissing;
 use HubSpot\Client\Crm\Contacts\ApiException;
 use HubSpot\Client\Crm\Contacts\Model\Filter;
 use HubSpot\Client\Crm\Contacts\Model\FilterGroup;
 use HubSpot\Client\Crm\Contacts\Model\PublicObjectSearchRequest;
 use HubSpot\Client\Crm\Contacts\Model\SimplePublicObjectInput;
-use HubSpot\Crm\ObjectType;
-use HubspotCommerceSchemaMissingException;
 use Hubspot\Discovery\Discovery as HubSpotApi;
-use ProcessingSettingsException;
 
 /**
  * Class CustomerService
@@ -105,7 +105,7 @@ class CustomerService extends Component implements HubspotServiceInterface
 
         try {
             $res = $this->hubspot->crm()->contacts()->searchApi()->doSearch($searchReq);
-            return $res->getResults()[0] ? $res->getResults()[0]->getId() : false;
+            return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
         } catch (ApiException $e) {
             return false;
         }
@@ -158,14 +158,18 @@ class CustomerService extends Component implements HubspotServiceInterface
 
     /**
      * Associates a Contact with a Deal in Hubspot
-     * @throws ApiException
      */
     public function associateToDeal(int $hubspotContactId, $hubspotDealId): void
     {
-        $this->hubspot
-            ->crm()
-            ->contacts()
-            ->associationsApi()
-            ->create($hubspotContactId, ObjectType::DEALS, $hubspotDealId, 'contact_to_deal');
+        $this->hubspot->apiRequest([
+            'method' => 'PUT',
+            'path' => "/crm-associations/v1/associations",
+            'body' => [
+                "fromObjectId" => $hubspotContactId,
+                "toObjectId" => $hubspotDealId,
+                "category" => "HUBSPOT_DEFINED",
+                "definitionId" => HubSpotAssociations::CONTACT_TO_DEAL
+            ]
+        ]);
     }
 }

@@ -11,6 +11,7 @@
 
 namespace batchnz\hubspotecommercebridge\jobs;
 
+use batchnz\hubspotecommercebridge\models\HubspotOrder;
 use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
@@ -25,6 +26,7 @@ use craft\queue\BaseJob;
 class DeleteDealJob extends BaseJob
 {
     public int $orderId;
+    public string $orderNumber;
 
     // Public Methods
     // =========================================================================
@@ -38,10 +40,11 @@ class DeleteDealJob extends BaseJob
         $orderService = Plugin::getInstance()->getOrder();
 
         try {
-            $hubspotDeal = $orderService->fetch($this->orderId);
-            $hubspotDealId = $orderService->findInHubspot($hubspotDeal);
+            $orderModel = new HubspotOrder();
+            $orderModel->orderNumber = $this->orderNumber;
+            $hubspotDealId = $orderService->findInHubspot($orderModel);
             $orderService->deleteLineItemsFromHubspot($hubspotDealId);
-            $success = $orderService->deleteFromHubspot($hubspotDeal);
+            $success = $orderService->deleteFromHubspot($orderModel);
             if (!$success) {
                 throw new \RuntimeException();
             }

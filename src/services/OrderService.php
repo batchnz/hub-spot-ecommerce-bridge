@@ -3,13 +3,15 @@
 namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\exceptions\CraftCommerceObjectMissing;
+use batchnz\hubspotecommercebridge\exceptions\HubspotCommerceSchemaMissingException;
+use batchnz\hubspotecommercebridge\exceptions\ProcessingSettingsException;
 use batchnz\hubspotecommercebridge\models\HubspotOrder;
 use batchnz\hubspotecommercebridge\models\OrderSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\commerce\elements\Order;
-use CraftCommerceObjectMissing;
 use HubSpot\Client\Crm\Deals\ApiException;
 use HubSpot\Client\Crm\Deals\Model\Filter;
 use HubSpot\Client\Crm\Deals\Model\FilterGroup;
@@ -17,9 +19,7 @@ use HubSpot\Client\Crm\Deals\Model\PublicObjectSearchRequest;
 use HubSpot\Client\Crm\Deals\Model\SimplePublicObjectInput;
 use HubSpot\Client\Crm\LineItems\Model\BatchInputSimplePublicObjectId;
 use HubSpot\Client\Crm\LineItems\Model\SimplePublicObjectId;
-use HubspotCommerceSchemaMissingException;
 use Hubspot\Discovery\Discovery as HubSpotApi;
-use ProcessingSettingsException;
 
 /**
  * Class OrderService
@@ -106,7 +106,7 @@ class OrderService extends Component implements HubspotServiceInterface
 
         try {
             $res = $this->hubspot->crm()->deals()->searchApi()->doSearch($searchReq);
-            return $res->getResults()[0] ? $res->getResults()[0]->getId() : false;
+            return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
         } catch (ApiException $e) {
             return false;
         }
@@ -174,7 +174,6 @@ class OrderService extends Component implements HubspotServiceInterface
         $resArray = json_decode($res->getBody()->getContents(), true, 512, JSON_THROW_ON_ERROR);
 
         $lineItemIds = array_map(static fn ($result) => new SimplePublicObjectId(['id' => $result['id']]), $resArray['results']);
-        ray(compact('lineItemIds'));
         $batchLineItems = new BatchInputSimplePublicObjectId([
             'inputs' => $lineItemIds,
         ]);

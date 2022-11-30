@@ -2,20 +2,20 @@
 
 namespace batchnz\hubspotecommercebridge\services;
 
+use batchnz\hubspotecommercebridge\enums\HubSpotAssociations;
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\exceptions\CraftCommerceObjectMissing;
+use batchnz\hubspotecommercebridge\exceptions\HubspotCommerceSchemaMissingException;
+use batchnz\hubspotecommercebridge\exceptions\ProcessingSettingsException;
 use batchnz\hubspotecommercebridge\models\HubspotLineItem;
 use batchnz\hubspotecommercebridge\models\LineItemSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\commerce\records\LineItem;
-use CraftCommerceObjectMissing;
 use HubSpot\Client\Crm\LineItems\ApiException;
 use HubSpot\Client\Crm\LineItems\Model\SimplePublicObjectInput;
-use HubSpot\Crm\ObjectType;
-use HubspotCommerceSchemaMissingException;
 use Hubspot\Discovery\Discovery as HubSpotApi;
-use ProcessingSettingsException;
 
 /**
  * Class LineItemService
@@ -126,10 +126,15 @@ class LineItemService extends Component implements HubspotServiceInterface
      */
     public function associateToDeal(int $hubspotLineItemId, $hubspotDealId): void
     {
-        $this->hubspot
-            ->crm()
-            ->lineItems()
-            ->associationsApi()
-            ->create($hubspotLineItemId, ObjectType::DEALS, $hubspotDealId, 'line_item_to_deal');
+        $this->hubspot->apiRequest([
+            'method' => 'PUT',
+            'path' => "/crm-associations/v1/associations",
+            'body' => [
+                "fromObjectId" => $hubspotLineItemId,
+                "toObjectId" => $hubspotDealId,
+                "category" => "HUBSPOT_DEFINED",
+                "definitionId" => HubSpotAssociations::LINE_ITEM_TO_DEAL
+            ]
+        ]);
     }
 }

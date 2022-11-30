@@ -11,6 +11,7 @@
 
 namespace batchnz\hubspotecommercebridge\jobs;
 
+use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
@@ -25,6 +26,7 @@ use craft\queue\BaseJob;
 class DeleteProductJob extends BaseJob
 {
     public int $productId;
+    public string $sku;
 
     // Public Methods
     // =========================================================================
@@ -38,8 +40,9 @@ class DeleteProductJob extends BaseJob
         $productService = Plugin::getInstance()->getProduct();
 
         try {
-            $hubspotProduct = $productService->fetch($this->productId);
-            $success = $productService->deleteFromHubspot($hubspotProduct);
+            $productModel = new HubspotProduct();
+            $productModel->sku = $this->sku;
+            $success = $productService->deleteFromHubspot($productModel);
             if (!$success) {
                 throw new \RuntimeException();
             }

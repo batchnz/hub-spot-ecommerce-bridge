@@ -3,22 +3,21 @@
 namespace batchnz\hubspotecommercebridge\services;
 
 use batchnz\hubspotecommercebridge\enums\HubSpotObjectTypes;
+use batchnz\hubspotecommercebridge\exceptions\CraftCommerceObjectMissing;
+use batchnz\hubspotecommercebridge\exceptions\HubspotCommerceSchemaMissingException;
+use batchnz\hubspotecommercebridge\exceptions\ProcessingSettingsException;
 use batchnz\hubspotecommercebridge\models\HubspotProduct;
 use batchnz\hubspotecommercebridge\models\ProductSettings;
 use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
-use Craft;
 use craft\base\Component;
 use craft\commerce\elements\Variant;
-use CraftCommerceObjectMissing;
 use HubSpot\Client\Crm\Products\ApiException;
 use HubSpot\Client\Crm\Products\Model\Filter;
 use HubSpot\Client\Crm\Products\Model\FilterGroup;
 use HubSpot\Client\Crm\Products\Model\PublicObjectSearchRequest;
 use HubSpot\Client\Crm\Products\Model\SimplePublicObjectInput;
-use HubspotCommerceSchemaMissingException;
 use Hubspot\Discovery\Discovery as HubSpotApi;
-use ProcessingSettingsException;
 
 /**
  * Class ProductService
@@ -105,7 +104,7 @@ class ProductService extends Component implements HubspotServiceInterface
 
         try {
             $res = $this->hubspot->crm()->products()->searchApi()->doSearch($searchReq);
-            return $res->getResults()[0] ? $res->getResults()[0]->getId() : false;
+            return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
         } catch (ApiException $e) {
             return false;
         }
