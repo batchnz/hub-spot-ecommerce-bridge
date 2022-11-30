@@ -116,7 +116,7 @@ class LineItemService extends Component implements HubspotServiceInterface
      */
     public function deleteFromHubspot($model): int|false
     {
-        // TODO: Implement deleteFromHubspot() method.
+        // TODO: Define this function if it is ever needed to find line items in Hubspot
         return false;
     }
 
