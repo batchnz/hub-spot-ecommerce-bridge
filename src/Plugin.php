@@ -158,12 +158,10 @@ class Plugin extends CraftPlugin
             ];
         }
 
-        if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
-            $ret['subnav']['manual-sync'] = [
-                'label' => 'Manual Sync',
-                'url' => self::HANDLE . '/manual-sync'
-            ];
-        }
+        $ret['subnav']['manual-sync'] = [
+            'label' => 'Manual Sync',
+            'url' => self::HANDLE . '/manual-sync'
+        ];
 
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $ret['subnav']['settings'] = [
