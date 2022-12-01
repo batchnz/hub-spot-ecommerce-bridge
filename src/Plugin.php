@@ -19,6 +19,7 @@ use batchnz\hubspotecommercebridge\services\ManualSyncService;
 use batchnz\hubspotecommercebridge\services\OrderService;
 use batchnz\hubspotecommercebridge\services\ProductService;
 use batchnz\hubspotecommercebridge\models\Settings;
+use batchnz\hubspotecommercebridge\services\SettingsService;
 use Craft;
 use craft\base\Element;
 use craft\base\Plugin as CraftPlugin;
@@ -265,6 +266,7 @@ class Plugin extends CraftPlugin
             'order' => OrderService::class,
             'lineItem' => LineItemService::class,
             'manualSync' => ManualSyncService::class,
+            'settings' => SettingsService::class,
         ]);
     }
 
@@ -326,6 +328,16 @@ class Plugin extends CraftPlugin
     public function getManualSync(): ManualSyncService
     {
         return $this->get('manualSync');
+    }
+
+    /**
+     * Returns the settings service
+     *
+     * @return SettingsService
+     */
+    public function getSettingsService(): SettingsService
+    {
+        return $this->get('settings');
     }
 
     protected function createSettingsModel(): ?craft\base\Model

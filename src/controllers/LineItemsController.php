@@ -86,7 +86,6 @@ class LineItemsController extends Controller
      * @return Response|null|void
      * @throws \yii\web\BadRequestHttpException
      * @throws \yii\base\InvalidConfigException
-     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
     public function actionSaveSettings(): ?Response
     {
