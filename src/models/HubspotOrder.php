@@ -47,7 +47,7 @@ class HubspotOrder extends HubspotModel
         $deal->totalPrice = (string)$model->getTotalPrice();
         $deal->orderNumber = (string)$model->number;
         $deal->discountAmount = (string)$model->getTotalDiscount();
-        $deal->createDate = (string)(strtotime($model->dateCreated->getTimestamp()) * 1000);
+        $deal->createDate = $model->dateCreated->format(DATE_ATOM);
         $deal->orderShortNumber = $model->getShortNumber();
 
         return $deal;
