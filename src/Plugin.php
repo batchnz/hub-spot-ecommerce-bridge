@@ -12,25 +12,25 @@
 namespace batchnz\hubspotecommercebridge;
 
 use batchnz\hubspotecommercebridge\listeners\CustomerListener;
-use batchnz\hubspotecommercebridge\listeners\LineItemListener;
 use batchnz\hubspotecommercebridge\listeners\ProductListener;
-use batchnz\hubspotecommercebridge\services\ImportService;
-use batchnz\hubspotecommercebridge\services\MappingService;
+use batchnz\hubspotecommercebridge\services\CustomerService;
+use batchnz\hubspotecommercebridge\services\LineItemService;
+use batchnz\hubspotecommercebridge\services\ManualSyncService;
+use batchnz\hubspotecommercebridge\services\OrderService;
+use batchnz\hubspotecommercebridge\services\ProductService;
 use batchnz\hubspotecommercebridge\models\Settings;
 use batchnz\hubspotecommercebridge\services\SettingsService;
 use Craft;
 use craft\base\Element;
 use craft\base\Plugin as CraftPlugin;
 use craft\commerce\elements\Order;
-
 use craft\commerce\elements\Variant;
-use craft\commerce\records\Customer;
-use craft\commerce\services\LineItems;
+use craft\elements\User;
 use craft\events\RegisterUrlRulesEvent;
+use craft\helpers\App;
 use craft\helpers\UrlHelper;
-use craft\web\twig\variables\Cp;
 use craft\web\UrlManager;
-use SevenShores\Hubspot\Factory as HubSpotFactory;
+use HubSpot\Discovery\Discovery;
 use yii\base\Event;
 
 use batchnz\hubspotecommercebridge\listeners\OrderListener;
@@ -159,6 +159,11 @@ class Plugin extends CraftPlugin
             ];
         }
 
+        $ret['subnav']['manual-sync'] = [
+            'label' => 'Manual Sync',
+            'url' => self::HANDLE . '/manual-sync'
+        ];
+
         if (Craft::$app->getUser()->getIsAdmin() && Craft::$app->getConfig()->getGeneral()->allowAdminChanges) {
             $ret['subnav']['settings'] = [
                 'label' => 'Settings',
@@ -169,9 +174,9 @@ class Plugin extends CraftPlugin
         return $ret;
     }
 
-    public function getSettingsResponse(): mixed
+    public function getSettingsResponse(): \yii\web\Response
     {
-        Craft::$app->controller->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings'));
+        return Craft::$app->controller->redirect(UrlHelper::cpUrl(self::HANDLE . '/settings'));
     }
 
     // Protected Methods
@@ -210,24 +215,10 @@ class Plugin extends CraftPlugin
             [OrderListener::class, 'delete']
         );
 
-        // On save LineItem
-        Event::on(
-            LineItems::class,
-            LineItems::EVENT_AFTER_SAVE_LINE_ITEM,
-            [LineItemListener::class, 'upsert'],
-        );
-
-        //On remove LineItem from Order
-        Event::on(
-            Order::class,
-            Order::EVENT_AFTER_APPLY_REMOVE_LINE_ITEM,
-            [LineItemListener::class, 'delete'],
-        );
-
         // On save Customer
         Event::on(
-            Customer::class,
-            Customer::EVENT_BEFORE_UPDATE,
+            User::class,
+            Element::EVENT_AFTER_SAVE,
             [CustomerListener::class, 'upsert'],
         );
 
@@ -250,6 +241,7 @@ class Plugin extends CraftPlugin
             function (RegisterUrlRulesEvent $event) {
                 $event->rules[Plugin::HANDLE] = Plugin::HANDLE . '/customers/edit';
                 $event->rules[Plugin::HANDLE . '/settings'] = Plugin::HANDLE . '/settings/edit';
+                $event->rules[Plugin::HANDLE . '/manual-sync'] = Plugin::HANDLE . '/manual-sync/edit';
                 $event->rules[Plugin::HANDLE . '/mappings'] = Plugin::HANDLE . '/customers/edit';
                 $event->rules[Plugin::HANDLE . '/mappings/customers'] = Plugin::HANDLE . '/customers/edit';
                 $event->rules[Plugin::HANDLE . '/mappings/orders'] = Plugin::HANDLE . '/orders/edit';
@@ -263,36 +255,79 @@ class Plugin extends CraftPlugin
     {
         $settings = $this->getSettings();
 
-        // Create an preconfigured instance of the HubSpot provider
+        // Create a preconfigured instance of the HubSpot provider
         // to be injected into each instance of the api service
-        $hubspot = HubSpotFactory::create(Craft::parseEnv($settings->apiKey));
+        $hubspot = \HubSpot\Factory::createWithAccessToken(App::parseEnv($settings->apiKey));
 
         $this->setComponents([
-            'mapping' => MappingService::class,
-            'import' => ImportService::class,
             'hubspot' => $hubspot,
-            'settingsService' => SettingsService::class,
+            'product' => ProductService::class,
+            'customer' => CustomerService::class,
+            'order' => OrderService::class,
+            'lineItem' => LineItemService::class,
+            'manualSync' => ManualSyncService::class,
+            'settings' => SettingsService::class,
         ]);
     }
 
     /**
-     * Returns the mapping service
+     * Returns the HubSpot provider
      *
-     * @return MappingService
+     * @return Discovery
      */
-    public function getMapping(): MappingService
+    public function getHubSpot(): Discovery
     {
-        return $this->get('mapping');
+        return $this->get('hubspot');
     }
 
     /**
-     * Returns the import service
+     * Returns the product service
      *
-     * @return ImportService
+     * @return ProductService
      */
-    public function getImport(): ImportService
+    public function getProduct(): ProductService
     {
-        return $this->get('import');
+        return $this->get('product');
+    }
+
+    /**
+     * Returns the customer service
+     *
+     * @return CustomerService
+     */
+    public function getCustomer(): CustomerService
+    {
+        return $this->get('customer');
+    }
+
+    /**
+     * Returns the order service
+     *
+     * @return OrderService
+     */
+    public function getOrder(): OrderService
+    {
+        return $this->get('order');
+    }
+
+    /**
+     * Returns the lineItem service
+     *
+     * @return LineItemService
+     */
+    public function getLineItem(): LineItemService
+    {
+        return $this->get('lineItem');
+    }
+
+    /**
+     * Returns the manualSync service
+     *
+     * @return ManualSyncService
+     */
+    public function getManualSync(): ManualSyncService
+    {
+        return $this->get('manualSync');
     }
 
     /**
@@ -302,17 +337,7 @@ class Plugin extends CraftPlugin
      */
     public function getSettingsService(): SettingsService
     {
-        return $this->get('settingsService');
-    }
-
-    /**
-     * Returns the HubSpot provider
-     *
-     * @return HubSpotFactory
-     */
-    public function getHubSpot(): HubSpotFactory
-    {
-        return $this->get('hubspot');
+        return $this->get('settings');
     }
 
     protected function createSettingsModel(): ?craft\base\Model

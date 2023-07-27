@@ -8,10 +8,12 @@ use yii\base\Exception;
 
 class LineItemSettings extends Model
 {
+    private const PRODUCT_ID = "hs_product_id";
     private const QTY = "quantity";
     private const DESCRIPTION = "description";
     private const PRICE = "price";
 
+    public string $productId;
     public string $qty;
     public string $description;
     public string $price;
@@ -19,6 +21,7 @@ class LineItemSettings extends Model
     public function __construct()
     {
         parent::__construct();
+        $this->productId = self::PRODUCT_ID;
         $this->qty = self::QTY;
         $this->description = self::DESCRIPTION;
         $this->price = self::PRICE;
@@ -39,9 +42,10 @@ class LineItemSettings extends Model
 
         $lineItemSettings = new static();
 
-        $lineItemSettings->qty = $settings->orderStage ?? self::QTY;
-        $lineItemSettings->description = $settings->totalPrice ?? self::DESCRIPTION;
-        $lineItemSettings->price = $settings->dealType ?? self::PRICE;
+        $lineItemSettings->productId = $settings->productId ?? self::PRODUCT_ID;
+        $lineItemSettings->qty = $settings->qty ?? self::QTY;
+        $lineItemSettings->description = $settings->description ?? self::DESCRIPTION;
+        $lineItemSettings->price = $settings->price ?? self::PRICE;
 
         return $lineItemSettings;
     }
@@ -51,12 +55,13 @@ class LineItemSettings extends Model
         parent::rules();
 
         return [
-            [['qty', 'description', 'price'], 'required'],
+            [['productId', 'qty', 'description', 'price'], 'required'],
+            ['productId', 'compare', 'compareValue' => self::PRODUCT_ID],
             ['qty', 'compare', 'compareValue' => self::QTY],
             ['description', 'compare', 'compareValue' => self::DESCRIPTION],
             ['price', 'compare', 'compareValue' => self::PRICE],
 
-            [['qty', 'description', 'price'], 'string'],
+            [['productId', 'qty', 'description', 'price'], 'string'],
         ];
     }
 }

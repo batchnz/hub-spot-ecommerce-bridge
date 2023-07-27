@@ -8,16 +8,34 @@
 
     <p>{{ "Set the mappings for Order data between Craft Commerce and HubSpot" }}</p>
 
-    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Careful! \nAll HubSpot data stored in the changed fields will be deleted. \nAre you sure you want to save changes?');">
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Please ensure all fields exist in Hubspot as properties of Deals.');">
         <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/orders/save-settings">
         {{ redirectInput('hub-spot-ecommerce-bridge/mappings/orders') }}
         {{ csrfInput() }}
 
         {{ forms.textField({
+            label: 'Order Number',
+            id: 'orderNumber',
+            name: 'orderNumber',
+            value: orderSettings.orderNumber,
+            errors: orderSettings.getErrors('orderNumber'),
+            instructions: "This field will be automatically created for you in Hubspot.",
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
+            label: 'Order Name',
+            id: 'orderName',
+            name: 'orderName',
+            value: orderSettings.orderName,
+            errors: orderSettings.getErrors('orderName'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
             label: 'Order Stage',
             id: 'orderStage',
             name: 'orderStage',
-            placeholder: orderSettings.orderStage,
             value: orderSettings.orderStage,
             errors: orderSettings.getErrors('orderStage'),
             disabled: true,
@@ -27,7 +45,6 @@
             label: 'Total Price',
             id: 'totalPrice',
             name: 'totalPrice',
-            placeholder: orderSettings.totalPrice,
             value: orderSettings.totalPrice,
             errors: orderSettings.getErrors('totalPrice'),
             disabled: true,
@@ -37,19 +54,8 @@
             label: 'Deal Type',
             id: 'dealType',
             name: 'dealType',
-            placeholder: orderSettings.dealType,
             value: orderSettings.dealType,
             errors: orderSettings.getErrors('dealType'),
-            disabled: true,
-        }) }}
-
-        {{ forms.textField({
-            label: 'Order Number',
-            id: 'orderNumber',
-            name: 'orderNumber',
-            placeholder: orderSettings.orderNumber,
-            value: orderSettings.orderNumber,
-            errors: orderSettings.getErrors('orderNumber'),
             disabled: true,
         }) }}
 
@@ -57,17 +63,15 @@
             label: 'Discount Amount',
             id: 'discountAmount',
             name: 'discountAmount',
-            placeholder: orderSettings.discountAmount,
             value: orderSettings.discountAmount,
             errors: orderSettings.getErrors('discountAmount'),
-            disabled: true,
+            disabled: false,
         }) }}
 
         {{ forms.textField({
             label: 'Discount Code',
             id: 'discountCode',
             name: 'discountCode',
-            placeholder: orderSettings.discountCode,
             value: orderSettings.discountCode,
             errors: orderSettings.getErrors('discountCode'),
             disabled: false,
@@ -75,11 +79,10 @@
 
         {{ forms.textField({
             label: 'Date Created',
-            id: 'dateCreated',
-            name: 'dateCreated',
-            placeholder: orderSettings.dateCreated,
-            value: orderSettings.dateCreated,
-            errors: orderSettings.getErrors('dateCreated'),
+            id: 'createDate',
+            name: 'createDate',
+            value: orderSettings.createDate,
+            errors: orderSettings.getErrors('createDate'),
             disabled: false,
         }) }}
 
@@ -87,11 +90,26 @@
             label: 'Order Short Number',
             id: 'orderShortNumber',
             name: 'orderShortNumber',
-            placeholder: orderSettings.orderShortNumber,
             value: orderSettings.orderShortNumber,
             errors: orderSettings.getErrors('orderShortNumber'),
             disabled: false,
         }) }}
+
+        <h2 style="padding-top: 24px;">{{ "Order Stages" }}</h2>
+
+        <p>{{ "Set the Hubspot Deal pipeline IDs that relate to each Order status in Craft" }}</p>
+
+        {% for status in craft.commerce.orderStatuses.allOrderStatuses %}
+            {{ forms.textField({
+                label: status.name,
+                id: 'orderStages[' ~ status.handle ~ ']',
+                name: 'orderStages[' ~ status.handle ~ ']',
+                value: orderSettings.orderStages[status.handle] ?? '',
+                errors: orderSettings.getErrors('orderStages[' ~ status.handle ~ ']'),
+                instructions: "Leave empty if there is no Deal pipeline in Hubspot that relates to this Order status.",
+                disabled: false,
+            }) }}
+        {% endfor %}
 
         <input type="submit" class="btn submit" value="{{ 'Save' }}">
     </form>

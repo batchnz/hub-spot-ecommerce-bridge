@@ -16,7 +16,6 @@ use Craft;
 use craft\errors\MissingComponentException;
 use craft\web\Controller;
 
-use SevenShores\Hubspot\Exceptions\BadRequest;
 use yii\base\InvalidConfigException;
 use yii\web\BadRequestHttpException;
 use yii\web\ForbiddenHttpException;
@@ -99,9 +98,6 @@ class SettingsController extends Controller
 
         $settings = Plugin::getInstance()->getSettings();
         $settings->apiKey = $data['apiKey'] ?? $settings->apiKey;
-        $settings->storeId = $data['storeId'] ?? $settings->storeId;
-        $settings->storeLabel = $data['storeLabel'] ?? $settings->storeLabel;
-        $settings->storeAdminUri = $data['storeAdminUri'] ?? $settings->storeAdminUri;
 
         if (!$settings->validate()) {
             Craft::$app->getSession()->setError(
@@ -131,55 +127,5 @@ class SettingsController extends Controller
         Craft::$app->getSession()->setNotice('Settings saved.');
 
         return $this->redirectToPostedUrl();
-    }
-
-    /**
-     * Creates the store in HubSpot that will sync with the craft commerce store
-     *     * @return Response
-     * @throws BadRequest
-     */
-    public function actionCreateStore(): Response
-    {
-        $this->requireAdmin();
-        $store = [
-          "id" => Craft::parseEnv(Plugin::getInstance()->getSettings()->storeId),
-          "label" => Craft::parseEnv(Plugin::getInstance()->getSettings()->storeLabel),
-          "adminUri" => Craft::parseEnv(Plugin::getInstance()->getSettings()->storeAdminUri),
-        ];
-
-        $hubspot = Plugin::getInstance()->getHubSpot();
-        $created = $hubspot->ecommerceBridge()->createOrUpdateStore($store);
-
-        return $this->asJson($created);
-    }
-
-    /**
-    * Uses the HubSpot SDK to create of update the settings related to the data mappings
-    * @return Response
-    */
-    public function actionUpsertSettings(): Response
-    {
-        $mappingService = Plugin::getInstance()->getMapping();
-
-        $settings = $mappingService->createSettings();
-
-        $hubspot = Plugin::getInstance()->getHubSpot();
-        $upserted = $hubspot->ecommerceBridge()->upsertSettings($settings);
-
-        return $this->asJson($settings);
-    }
-
-    /**
-     * Uses the HubSpot SDK to create of update the settings related to the data mappings
-     * @return Response
-     */
-    public function actionGetSettings(): Response
-    {
-        $mappingService = Plugin::getInstance()->getMapping();
-
-        $hubspot = Plugin::getInstance()->getHubSpot();
-        $settings = $hubspot->ecommerceBridge()->getSettings();
-
-        return $this->asJson($settings);
     }
 }
