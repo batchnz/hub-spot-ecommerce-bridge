@@ -54,7 +54,7 @@ class ProductSettings extends Model
         return $productSettings;
     }
 
-    public function rules()
+    public function rules(): array
     {
         parent::rules();
 
@@ -66,5 +66,15 @@ class ProductSettings extends Model
 
             [['sku', 'title', 'price', 'size', 'colour', 'sheen', 'size_litres'], 'string'],
         ];
+    }
+
+    /**
+     * Returns the unique key used to identify the object in Hubspot
+     *
+     * @return string
+     */
+    public function uniqueKey(): string
+    {
+        return 'sku';
     }
 }

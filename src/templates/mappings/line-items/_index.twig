@@ -8,16 +8,24 @@
 
     <p>{{ "Set the mappings for Line Item data between Craft Commerce and HubSpot" }}</p>
 
-    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Careful! \nAll HubSpot data stored in the changed fields will be deleted. \nAre you sure you want to save changes?');">
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Please ensure all fields exist in Hubspot as properties of Line Items.');">
         <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/line-items/save-settings">
         {{ redirectInput('hub-spot-ecommerce-bridge/mappings/line-items') }}
         {{ csrfInput() }}
 
         {{ forms.textField({
+            label: 'Hubspot Product ID',
+            id: 'productId',
+            name: 'productId',
+            value: lineItemSettings.productId,
+            errors: lineItemSettings.getErrors('productId'),
+            disabled: true,
+        }) }}
+
+        {{ forms.textField({
             label: 'Quantity',
             id: 'qty',
             name: 'qty',
-            placeholder: lineItemSettings.qty,
             value: lineItemSettings.qty,
             errors: lineItemSettings.getErrors('qty'),
             disabled: true,
@@ -27,7 +35,6 @@
             label: 'Description',
             id: 'description',
             name: 'description',
-            placeholder: lineItemSettings.description,
             value: lineItemSettings.description,
             errors: lineItemSettings.getErrors('description'),
             disabled: true,
@@ -37,7 +44,6 @@
             label: 'Price',
             id: 'price',
             name: 'price',
-            placeholder: lineItemSettings.price,
             value: lineItemSettings.price,
             errors: lineItemSettings.getErrors('price'),
             disabled: true,

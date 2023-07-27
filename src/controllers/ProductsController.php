@@ -39,12 +39,12 @@ class ProductsController extends Controller
     *         The actions must be in 'kebab-case'
     * @access protected
     */
-    protected $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = true;
 
     // Public Methods
     // =========================================================================
 
-    public function init()
+    public function init(): void
     {
         $this->requirePermission('accessCp');
         parent::init();
@@ -80,19 +80,12 @@ class ProductsController extends Controller
      * @return Response|null|void
      * @throws \yii\web\BadRequestHttpException
      * @throws \yii\base\InvalidConfigException
-     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
     public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
 
         $data = $this->request->getBodyParams();
-
-//        // Connection ID is a required parameter
-//        if (!empty($data['firstname']) ) {
-//            $this->setFailFlash(Plugin::t('Couldn\'t find the organisation\'s connection.'));
-//            return null;
-//        }
 
         $productSettings = new ProductSettings();
         $productSettings->attributes = $data;
@@ -107,13 +100,7 @@ class ProductsController extends Controller
             return $this->_redirectError($productSettings, $productSettings->getErrors());
         }
 
-        $savedApi = Plugin::getInstance()->getSettingsService()->saveApi();
-
-        if ($savedApi) {
-            $this->setSuccessFlash('Product settings saved.');
-        } else {
-            $this->setFailFlash('Error while connecting to the HubSpot API.');
-        }
+        $this->setSuccessFlash('Product settings saved.');
 
         return $this->redirectToPostedUrl();
     }

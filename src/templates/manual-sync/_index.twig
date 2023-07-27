@@ -1,0 +1,106 @@
+{% extends "_layouts/cp" %}
+
+{% set selectedSubnavItem = 'manual-sync' %}
+{% set docTitle = 'HubSpot Commerce Maunual Sync' %}
+{% set title = 'Manual Sync' %}
+{% set fullPageForm = false %}
+
+{% import "_includes/forms" as forms %}
+
+{% block content %}
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut style="padding-bottom: 14px">
+        {{ actionInput('hub-spot-ecommerce-bridge/manual-sync/sync-products') }}
+        {{ redirectInput('hub-spot-ecommerce-bridge/manual-sync') }}
+        {{ csrfInput() }}
+
+        <h2>{{ "Products" }}</h2>
+
+        <p>{{ "Manually sync all Products updated between a date range. Leave dates blank to sync all Products." }}</p>
+
+        {{ forms.dateTimeField({
+            label: 'Start Date',
+            id: 'startDate-products',
+            name: 'startDate',
+        }) }}
+
+        {{ forms.dateTimeField({
+            label: 'End Date',
+            id: 'endDate-products',
+            name: 'endDate',
+        }) }}
+
+        <input type="submit" class="btn submit" value="{{ 'Sync Products' }}" />
+    </form>
+
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut style="padding-bottom: 14px">
+        {{ actionInput('hub-spot-ecommerce-bridge/manual-sync/sync-orders') }}
+        {{ redirectInput('hub-spot-ecommerce-bridge/manual-sync') }}
+        {{ csrfInput() }}
+
+        <h2>{{ "Orders" }}</h2>
+
+        <p>{{ "Manually sync all Orders updated between a date range. Leave dates blank to sync all Orders." }}</p>
+
+        {{ forms.dateTimeField({
+            label: 'Start Date',
+            id: 'startDate-orders',
+            name: 'startDate',
+        }) }}
+
+        {{ forms.dateTimeField({
+            label: 'End Date',
+            id: 'endDate-orders',
+            name: 'endDate',
+        }) }}
+
+        <input type="submit" class="btn submit" value="{{ 'Sync Orders' }}" />
+    </form>
+
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut style="padding-bottom: 14px">
+        {{ actionInput('hub-spot-ecommerce-bridge/manual-sync/sync-customers') }}
+        {{ redirectInput('hub-spot-ecommerce-bridge/manual-sync') }}
+        {{ csrfInput() }}
+
+        <h2>{{ "Customers" }}</h2>
+
+        <p>{{ "Manually sync all Customers updated between a date range. Leave dates blank to sync all Customers." }}</p>
+
+        {{ forms.dateTimeField({
+            label: 'Start Date',
+            id: 'startDate-customers',
+            name: 'startDate',
+        }) }}
+
+        {{ forms.dateTimeField({
+            label: 'End Date',
+            id: 'endDate-customers',
+            name: 'endDate',
+        }) }}
+
+        <input type="submit" class="btn submit" value="{{ 'Sync Customers' }}" />
+    </form>
+
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut>
+        {{ actionInput('hub-spot-ecommerce-bridge/manual-sync/sync-all') }}
+        {{ redirectInput('hub-spot-ecommerce-bridge/manual-sync') }}
+        {{ csrfInput() }}
+
+        <h2>{{ "All" }}</h2>
+
+        <p>{{ "Manually sync all commerce data updated between a date range. Leave dates blank to sync all commerce data." }}</p>
+
+        {{ forms.dateTimeField({
+            label: 'Start Date',
+            id: 'startDate-all',
+            name: 'startDate',
+        }) }}
+
+        {{ forms.dateTimeField({
+            label: 'End Date',
+            id: 'endDate-all',
+            name: 'endDate',
+        }) }}
+
+        <input type="submit" class="btn submit" value="{{ 'Sync All' }}" />
+    </form>
+{% endblock %}

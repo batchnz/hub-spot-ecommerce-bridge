@@ -41,7 +41,7 @@ class LineItemsController extends Controller
     *         The actions must be in 'kebab-case'
     * @access protected
     */
-    protected $allowAnonymous = true;
+    protected array|bool|int $allowAnonymous = true;
 
     // Public Methods
     // =========================================================================
@@ -50,7 +50,7 @@ class LineItemsController extends Controller
      * @throws \yii\base\InvalidConfigException
      * @throws \yii\web\ForbiddenHttpException
      */
-    public function init()
+    public function init(): void
     {
         $this->requirePermission('accessCp');
         parent::init();
@@ -86,19 +86,12 @@ class LineItemsController extends Controller
      * @return Response|null|void
      * @throws \yii\web\BadRequestHttpException
      * @throws \yii\base\InvalidConfigException
-     * @throws \SevenShores\Hubspot\Exceptions\BadRequest
      */
     public function actionSaveSettings(): ?Response
     {
         $this->requirePostRequest();
 
         $data = $this->request->getBodyParams();
-
-//        // Connection ID is a required parameter
-//        if (!empty($data['firstname']) ) {
-//            $this->setFailFlash(Plugin::t('Couldn\'t find the organisation\'s connection.'));
-//            return null;
-//        }
 
         $lineItemSettings = new LineItemSettings();
         $lineItemSettings->attributes = $data;
@@ -113,13 +106,7 @@ class LineItemsController extends Controller
             return $this->_redirectError($lineItemSettings, $lineItemSettings->getErrors());
         }
 
-        $savedApi = Plugin::getInstance()->getSettingsService()->saveApi();
-
-        if ($savedApi) {
-            $this->setSuccessFlash('Line Item settings saved.');
-        } else {
-            $this->setFailFlash('Error while connecting to the HubSpot API.');
-        }
+        $this->setSuccessFlash('Line Item settings saved.');
 
         return $this->redirectToPostedUrl();
     }

@@ -54,7 +54,7 @@ class CustomerSettings extends Model
         return $customerSettings;
     }
 
-    public function rules()
+    public function rules(): array
     {
         parent::rules();
 
@@ -67,5 +67,15 @@ class CustomerSettings extends Model
 
             [['firstName', 'lastName', 'email', 'phoneNumber', 'address', 'city', 'business'], 'string'],
         ];
+    }
+
+    /**
+     * Returns the unique key used to identify the object in Hubspot
+     *
+     * @return string
+     */
+    public function uniqueKey(): string
+    {
+        return 'email';
     }
 }

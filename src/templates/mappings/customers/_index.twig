@@ -8,7 +8,7 @@
 
     <p>{{ "Set the mappings for Customer data between Craft Commerce and HubSpot" }}</p>
 
-    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Careful! \nAll HubSpot data stored in the changed fields will be deleted. \nAre you sure you want to save changes?');">
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Please ensure all fields exist in Hubspot as properties of Contacts.');">
         <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/customers/save-settings">
         {{ redirectInput('hub-spot-ecommerce-bridge/mappings/customers') }}
         {{ csrfInput() }}
@@ -17,7 +17,6 @@
             label: 'First Name',
             id: 'firstName',
             name: 'firstName',
-            placeholder: customerSettings.firstName,
             value: customerSettings.firstName,
             errors: customerSettings.getErrors('firstName'),
             disabled: true,
@@ -27,7 +26,6 @@
             label: 'Last Name',
             id: 'lastName',
             name: 'lastName',
-            placeholder: customerSettings.lastName,
             value: customerSettings.lastName,
             errors: customerSettings.getErrors('lastName'),
             disabled: true,
@@ -37,7 +35,6 @@
             label: 'Email',
             id: 'email',
             name: 'email',
-            placeholder: customerSettings.email,
             value: customerSettings.email,
             errors: customerSettings.getErrors('email'),
             disabled: true,
@@ -47,7 +44,6 @@
             label: 'Phone Number',
             id: 'phoneNumber',
             name: 'phoneNumber',
-            placeholder: customerSettings.phoneNumber,
             value: customerSettings.phoneNumber,
             errors: customerSettings.getErrors('phoneNumber'),
             disabled: false,
@@ -57,7 +53,6 @@
             label: 'Address',
             id: 'address',
             name: 'address',
-            placeholder: customerSettings.address,
             value: customerSettings.address,
             errors: customerSettings.getErrors('address'),
             disabled: false,
@@ -67,7 +62,6 @@
             label: 'City',
             id: 'city',
             name: 'city',
-            placeholder: customerSettings.city,
             value: customerSettings.city,
             errors: customerSettings.getErrors('city'),
             disabled: false,
@@ -77,7 +71,6 @@
             label: 'Business',
             id: 'business',
             name: 'business',
-            placeholder: customerSettings.business,
             value: customerSettings.business,
             errors: customerSettings.getErrors('business'),
             disabled: false,

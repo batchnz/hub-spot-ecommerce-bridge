@@ -8,7 +8,7 @@
 
     <p>{{ "Set the mappings for Product data between Craft Commerce and HubSpot" }}</p>
 
-    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Careful! \nAll HubSpot data stored in the changed fields will be deleted. \nAre you sure you want to save changes?');">
+    <form action="" method="post" accept-charset="UTF-8" data-saveshortcut onsubmit="return confirm('Please ensure all fields exist in Hubspot as properties of Products.');">
         <input type="hidden" name="action" value="hub-spot-ecommerce-bridge/products/save-settings">
         {{ redirectInput('hub-spot-ecommerce-bridge/mappings/products') }}
         {{ csrfInput() }}
@@ -17,7 +17,6 @@
             label: 'SKU',
             id: 'sku',
             name: 'sku',
-            placeholder: productSettings.sku,
             value: productSettings.sku,
             errors: productSettings.getErrors('sku'),
             disabled: true,
@@ -27,7 +26,6 @@
             label: 'Price',
             id: 'price',
             name: 'price',
-            placeholder: productSettings.price,
             value: productSettings.price,
             errors: productSettings.getErrors('price'),
             disabled: true,
@@ -37,7 +35,6 @@
             label: 'Title',
             id: 'title',
             name: 'title',
-            placeholder: productSettings.title,
             value: productSettings.title,
             errors: productSettings.getErrors('title'),
             disabled: true,
@@ -47,7 +44,6 @@
             label: 'Size',
             id: 'size',
             name: 'size',
-            placeholder: productSettings.size,
             value: productSettings.size,
             errors: productSettings.getErrors('size'),
         }) }}
@@ -56,7 +52,6 @@
             label: 'Colour',
             id: 'colour',
             name: 'colour',
-            placeholder: productSettings.colour,
             value: productSettings.colour,
             errors: productSettings.getErrors('colour'),
         }) }}
@@ -65,7 +60,6 @@
             label: 'Sheen',
             id: 'sheen',
             name: 'sheen',
-            placeholder: productSettings.sheen,
             value: productSettings.sheen,
             errors: productSettings.getErrors('sheen'),
         }) }}
@@ -74,7 +68,6 @@
             label: 'Size (Litres)',
             id: 'size_litres',
             name: 'size_litres',
-            placeholder: productSettings.size_litres,
             value: productSettings.size_litres,
             errors: productSettings.getErrors('size_litres'),
         }) }}
