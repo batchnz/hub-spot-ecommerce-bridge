@@ -13,6 +13,7 @@ use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\elements\User;
+use Exception;
 use HubSpot\Client\Crm\Contacts\ApiException;
 use HubSpot\Client\Crm\Contacts\Model\Filter;
 use HubSpot\Client\Crm\Contacts\Model\FilterGroup;
@@ -24,7 +25,7 @@ use Hubspot\Discovery\Discovery as HubSpotApi;
  * Class CustomerService
  * @package batchnz\hubspotecommercebridge\services
  *
- * Handles all of the logic to do with importing Contacts from Craft Commerce to the HubSpot store
+ * Handles all the logic to do with importing Contacts from Craft Commerce to the HubSpot store
  */
 class CustomerService extends Component implements HubspotServiceInterface
 {
@@ -45,8 +46,8 @@ class CustomerService extends Component implements HubspotServiceInterface
         }
         try {
             $customerSettings = CustomerSettings::fromHubspotObject($contactSchema);
-        } catch (\Exception $e) {
-            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.');
+        } catch (Exception $e) {
+            throw new ProcessingSettingsException('Failed to process the settings for CONTACT.' . $e->getMessage());
         }
         $customerSettings->validate();
         $this->settings = $customerSettings;
@@ -87,9 +88,9 @@ class CustomerService extends Component implements HubspotServiceInterface
      * Finds a customer in hubspot using its unique key
      *
      * @param HubspotCustomer $model
-     * @return int|false
+     * @throws ApiException
      */
-    public function findInHubspot($model): string|false
+    public function findInHubspot($model): string
     {
         $filter = new Filter([
             'property_name' => $this->settings[$this->settings->uniqueKey()],
@@ -103,57 +104,46 @@ class CustomerService extends Component implements HubspotServiceInterface
             'filter_groups' => [$filterGroup],
         ]);
 
-        try {
-            $res = $this->hubspot->crm()->contacts()->searchApi()->doSearch($searchReq);
-            return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
-        } catch (ApiException $e) {
-            return false;
-        }
+        $res = $this->hubspot->crm()->contacts()->searchApi()->doSearch($searchReq);
+        return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
     }
 
     /**
      * Creates a contact in Hubspot. If the contact already exists, then updates the existing contact.
      * @param HubspotCustomer $model
+     * @throws ApiException
      */
-    public function upsertToHubspot($model): string|false
+    public function upsertToHubspot($model): string
     {
         $properties = $this->mapProperties($model);
         $existingObjectId = $this->findInHubspot($model);
         $contactInput = new SimplePublicObjectInput();
-        try {
-            if ($existingObjectId) {
-                // Don't upsert the unique key
-                unset($properties[$this->settings[$this->settings->uniqueKey()]]);
-                $contactInput->setProperties($properties);
-                $res = $this->hubspot->crm()->contacts()->basicApi()->update($existingObjectId, $contactInput);
-            } else {
-                $contactInput->setProperties($properties);
-                $res = $this->hubspot->crm()->contacts()->basicApi()->create($contactInput);
-            }
-            return $res->getId();
-        } catch (ApiException $e) {
-            return false;
+        if ($existingObjectId) {
+            // Don't upsert the unique key
+            unset($properties[$this->settings[$this->settings->uniqueKey()]]);
+            $contactInput->setProperties($properties);
+            $res = $this->hubspot->crm()->contacts()->basicApi()->update($existingObjectId, $contactInput);
+        } else {
+            $contactInput->setProperties($properties);
+            $res = $this->hubspot->crm()->contacts()->basicApi()->create($contactInput);
         }
+        return $res->getId();
     }
 
     /**
      * Deletes a contact from Hubspot.
      *
      * @param HubspotCustomer $model
-     * @return int|false
+     * @throws ApiException
      */
-    public function deleteFromHubspot($model): int|false
+    public function deleteFromHubspot($model): int
     {
         $existingObjectId = $this->findInHubspot($model);
         if (!$existingObjectId) {
             return false;
         }
-        try {
-            $this->hubspot->crm()->contacts()->basicApi()->archive($existingObjectId);
-            return $existingObjectId;
-        } catch (ApiException $e) {
-            return false;
-        }
+        $this->hubspot->crm()->contacts()->basicApi()->archive($existingObjectId);
+        return $existingObjectId;
     }
 
     /**

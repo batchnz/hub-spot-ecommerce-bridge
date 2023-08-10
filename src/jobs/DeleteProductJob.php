@@ -16,6 +16,8 @@ use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\queue\BaseJob;
+use Exception;
+use RuntimeException;
 
 /**
  *
@@ -33,7 +35,7 @@ class DeleteProductJob extends BaseJob
 
     /**
      * When the Queue is ready to run your job, it will call this method.
-     * @throws \Exception
+     * @throws Exception
      */
     public function execute($queue): void
     {
@@ -44,11 +46,11 @@ class DeleteProductJob extends BaseJob
             $productModel->sku = $this->sku;
             $success = $productService->deleteFromHubspot($productModel);
             if (!$success) {
-                throw new \RuntimeException();
+                throw new RuntimeException();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Craft::error($e->getMessage(), Plugin::HANDLE);
-            throw new \RuntimeException('Failed Delete to Product with ID: ' . $this->productId . " from Hubspot: " . $e->getMessage());
+            throw new RuntimeException('Failed Delete to Product with ID: ' . $this->productId . " from Hubspot: " . $e->getMessage());
         }
     }
 

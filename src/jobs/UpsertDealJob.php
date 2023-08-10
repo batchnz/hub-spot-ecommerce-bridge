@@ -15,6 +15,9 @@ use batchnz\hubspotecommercebridge\Plugin;
 use Craft;
 use craft\commerce\elements\Order;
 use craft\queue\BaseJob;
+use Exception;
+use HubSpot\Client\Crm;
+use RuntimeException;
 
 /**
  *
@@ -31,7 +34,6 @@ class UpsertDealJob extends BaseJob
 
     /**
      * When the Queue is ready to run your job, it will call this method.
-     * @throws \Exception
      */
     public function execute($queue): void
     {
@@ -40,49 +42,54 @@ class UpsertDealJob extends BaseJob
         $orderService = Plugin::getInstance()->getOrder();
         $lineItemService = Plugin::getInstance()->getLineItem();
 
-        $craftOrder = Order::findOne(['id' => $this->orderId]);
+        try {
+            $craftOrder = Order::findOne(['id' => $this->orderId]);
 
-        if (!$craftOrder) {
-            Craft::error('Could not find Order with ID: ' . $this->orderId . ' in the database', Plugin::HANDLE);
-            throw new \RuntimeException('Could not find Order with ID: ' . $this->orderId . ' in the database');
-        }
-
-        $customerId = $craftOrder->getCustomer()?->getId();
-        $lineItems = $craftOrder->getLineItems();
-
-        $hubspotOrderModel = $orderService->fetch($this->orderId);
-        $hubspotDealId = $orderService->upsertToHubspot($hubspotOrderModel);
-
-        if (!$hubspotDealId) {
-            Craft::error('Failed to upsert Order with ID: ' . $craftOrder->getId() . ' to Hubspot', Plugin::HANDLE);
-            throw new \RuntimeException('Failed to upsert Order with ID: ' . $craftOrder->getId() . ' to Hubspot');
-        }
-
-        if ($customerId) {
-            $hubspotCustomerModel = $customerService->fetch($customerId);
-            $hubspotContactId = $customerService->upsertToHubspot($hubspotCustomerModel);
-            if ($hubspotContactId) {
-                $customerService->associateToDeal($hubspotContactId, $hubspotDealId);
+            if (!$craftOrder) {
+                Craft::error('Could not find Order with ID: ' . $this->orderId . ' in the database', Plugin::HANDLE);
+                throw new RuntimeException('Could not find Order with ID: ' . $this->orderId . ' in the database');
             }
-        }
 
-        $orderService->deleteLineItemsFromHubspot($hubspotDealId);
+            $customerId = $craftOrder->getCustomer()?->getId();
+            $lineItems = $craftOrder->getLineItems();
 
-        foreach ($lineItems as $lineItem) {
-            $craftProductId = $lineItem->getPurchasable()?->getId();
-            $hubspotProductModel = $productService->fetch($craftProductId);
-            $hubspotProductId = $productService->upsertToHubspot($hubspotProductModel);
+            $hubspotOrderModel = $orderService->fetch($this->orderId);
+            $hubspotDealId = $orderService->upsertToHubspot($hubspotOrderModel);
 
-            $hubspotLineItemModel = $lineItemService->fetch($lineItem->id);
-            $hubspotLineItemModel->productId = (string)$hubspotProductId;
-            $hubspotLineItemId = $lineItemService->upsertToHubspot($hubspotLineItemModel);
-
-            try {
-                $lineItemService->associateToDeal($hubspotLineItemId, $hubspotDealId);
-            } catch (\Exception $e) {
-                Craft::error($e->getMessage(), Plugin::HANDLE);
-                throw new \RuntimeException('Failed to Associate LineItem with ID: ' . $lineItem->id . " to Order with ID: " . $craftOrder?->getId() . " in Hubspot: " . $e->getMessage());
+            if (!$hubspotDealId) {
+                Craft::error('Failed to upsert Order with ID: ' . $craftOrder->getId() . ' to Hubspot', Plugin::HANDLE);
+                throw new RuntimeException('Failed to upsert Order with ID: ' . $craftOrder->getId() . ' to Hubspot');
             }
+
+            if ($customerId) {
+                $hubspotCustomerModel = $customerService->fetch($customerId);
+                $hubspotContactId = $customerService->upsertToHubspot($hubspotCustomerModel);
+                if ($hubspotContactId) {
+                    $customerService->associateToDeal($hubspotContactId, $hubspotDealId);
+                }
+            }
+
+            $orderService->deleteLineItemsFromHubspot($hubspotDealId);
+
+            foreach ($lineItems as $lineItem) {
+                $craftProductId = $lineItem->getPurchasable()?->getId();
+                $hubspotProductModel = $productService->fetch($craftProductId);
+                $hubspotProductId = $productService->upsertToHubspot($hubspotProductModel);
+
+                $hubspotLineItemModel = $lineItemService->fetch($lineItem->id);
+                $hubspotLineItemModel->productId = (string)$hubspotProductId;
+                $hubspotLineItemId = $lineItemService->upsertToHubspot($hubspotLineItemModel);
+
+                try {
+                    $lineItemService->associateToDeal($hubspotLineItemId, $hubspotDealId);
+                } catch (Exception $e) {
+                    Craft::error($e->getMessage(), Plugin::HANDLE);
+                    throw new RuntimeException('Failed to Associate LineItem with ID: ' . $lineItem->id . " to Order with ID: " . $craftOrder?->getId() . " in Hubspot: " . $e->getMessage());
+                }
+            }
+        } catch (Exception $e) {
+            Craft::error($e->getMessage(), Plugin::HANDLE);
+            throw new RuntimeException('Failed to Upsert Order with ID: ' . $this->orderId . " to Hubspot: " . $e->getMessage());
         }
     }
 

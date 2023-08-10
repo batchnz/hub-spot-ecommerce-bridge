@@ -12,7 +12,7 @@ use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\commerce\elements\Order;
-use HubSpot\Client\Crm\Deals\ApiException;
+use Exception;
 use HubSpot\Client\Crm\Deals\Model\Filter;
 use HubSpot\Client\Crm\Deals\Model\FilterGroup;
 use HubSpot\Client\Crm\Deals\Model\PublicObjectSearchRequest;
@@ -20,12 +20,14 @@ use HubSpot\Client\Crm\Deals\Model\SimplePublicObjectInput;
 use HubSpot\Client\Crm\LineItems\Model\BatchInputSimplePublicObjectId;
 use HubSpot\Client\Crm\LineItems\Model\SimplePublicObjectId;
 use Hubspot\Discovery\Discovery as HubSpotApi;
+use HubSpot\Client\Crm;
+use JsonException;
 
 /**
  * Class OrderService
  * @package batchnz\hubspotecommercebridge\services
  *
- * Handles all of the logic to do with importing Orders from Craft Commerce to the HubSpot store
+ * Handles all the logic to do with importing Orders from Craft Commerce to the HubSpot store
  */
 class OrderService extends Component implements HubspotServiceInterface
 {
@@ -46,8 +48,8 @@ class OrderService extends Component implements HubspotServiceInterface
         }
         try {
             $orderSettings = OrderSettings::fromHubspotObject($dealSchema);
-        } catch (\Exception $e) {
-            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.');
+        } catch (Exception $e) {
+            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.' . $e->getMessage());
         }
         $orderSettings->validate();
         $this->settings = $orderSettings;
@@ -89,6 +91,7 @@ class OrderService extends Component implements HubspotServiceInterface
      *
      * @param HubspotOrder $model
      * @return int|false
+     * @throws Crm\Deals\ApiException
      */
     public function findInHubspot($model): string|false
     {
@@ -104,37 +107,31 @@ class OrderService extends Component implements HubspotServiceInterface
             'filter_groups' => [$filterGroup],
         ]);
 
-        try {
-            $res = $this->hubspot->crm()->deals()->searchApi()->doSearch($searchReq);
-            return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
-        } catch (ApiException $e) {
-            return false;
-        }
+        $res = $this->hubspot->crm()->deals()->searchApi()->doSearch($searchReq);
+        return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
     }
 
     /**
      * Creates a deal in Hubspot. If the deal already exists, then updates the existing deal.
      * @param HubspotOrder $model
+     * @throws Crm\Deals\ApiException
      */
     public function upsertToHubspot($model): string|false
     {
         $properties = $this->mapProperties($model);
         $existingObjectId = $this->findInHubspot($model);
         $dealInput = new SimplePublicObjectInput();
-        try {
-            if ($existingObjectId) {
-                // Don't upsert the unique key
-                unset($properties[$this->settings[$this->settings->uniqueKey()]]);
-                $dealInput->setProperties($properties);
-                $res = $this->hubspot->crm()->deals()->basicApi()->update($existingObjectId, $dealInput);
-            } else {
-                $dealInput->setProperties($properties);
-                $res = $this->hubspot->crm()->deals()->basicApi()->create($dealInput);
-            }
-            return $res->getId();
-        } catch (ApiException $e) {
-            return false;
+        if ($existingObjectId) {
+            // Don't upsert the unique key
+            unset($properties[$this->settings[$this->settings->uniqueKey()]]);
+            $dealInput->setProperties($properties);
+            $res = $this->hubspot->crm()->deals()->basicApi()->update($existingObjectId, $dealInput);
+        } else {
+            $dealInput->setProperties($properties);
+            $res = $this->hubspot->crm()->deals()->basicApi()->create($dealInput);
         }
+        return $res->getId();
+
     }
 
     /**
@@ -142,6 +139,7 @@ class OrderService extends Component implements HubspotServiceInterface
      *
      * @param HubspotOrder $model
      * @return int|false
+     * @throws Crm\Deals\ApiException
      */
     public function deleteFromHubspot($model): int|false
     {
@@ -149,16 +147,14 @@ class OrderService extends Component implements HubspotServiceInterface
         if (!$existingObjectId) {
             return false;
         }
-        try {
-            $this->hubspot->crm()->deals()->basicApi()->archive($existingObjectId);
-            return $existingObjectId;
-        } catch (ApiException $e) {
-            return false;
-        }
+        $this->hubspot->crm()->deals()->basicApi()->archive($existingObjectId);
+        return $existingObjectId;
     }
 
     /**
      * Deletes line items from a Deal in Hubspot. This deletes with in batches with a max limit of 100;
+     * @throws Crm\LineItems\ApiException
+     * @throws JsonException
      */
     public function deleteLineItemsFromHubspot(int $dealId): void
     {

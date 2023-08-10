@@ -16,6 +16,8 @@ use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\queue\BaseJob;
+use Exception;
+use RuntimeException;
 
 /**
  *
@@ -33,7 +35,6 @@ class DeleteDealJob extends BaseJob
 
     /**
      * When the Queue is ready to run your job, it will call this method.
-     * @throws \Exception
      */
     public function execute($queue): void
     {
@@ -46,11 +47,11 @@ class DeleteDealJob extends BaseJob
             $orderService->deleteLineItemsFromHubspot($hubspotDealId);
             $success = $orderService->deleteFromHubspot($orderModel);
             if (!$success) {
-                throw new \RuntimeException();
+                throw new RuntimeException();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Craft::error($e->getMessage(), Plugin::HANDLE);
-            throw new \RuntimeException('Failed Delete to Order with ID: ' . $this->orderId . " from Hubspot: " . $e->getMessage());
+            throw new RuntimeException('Failed Delete to Order with ID: ' . $this->orderId . " from Hubspot: " . $e->getMessage());
         }
     }
 

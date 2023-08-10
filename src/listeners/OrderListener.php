@@ -15,12 +15,11 @@ use batchnz\hubspotecommercebridge\jobs\DeleteDealJob;
 use batchnz\hubspotecommercebridge\jobs\UpsertDealJob;
 use Craft;
 use craft\commerce\elements\Order;
-use craft\events\ModelEvent;
 use yii\base\Event;
 
 class OrderListener
 {
-    public static function upsert(ModelEvent $event): void
+    public static function upsert(Event $event): void
     {
         /** @var Order $order */
         $order = $event->sender;

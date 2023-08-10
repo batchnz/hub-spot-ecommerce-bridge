@@ -190,35 +190,42 @@ class Plugin extends CraftPlugin
         // On Product (variant) save
         Event::on(
             Variant::class,
-            Element::EVENT_AFTER_SAVE,
+            Variant::EVENT_AFTER_SAVE,
             [ProductListener::class, 'upsert']
         );
 
         // On Product (variant) delete
         Event::on(
             Variant::class,
-            Element::EVENT_AFTER_DELETE,
+            Variant::EVENT_AFTER_DELETE,
             [ProductListener::class, 'delete']
         );
 
         // On Order save
         Event::on(
             Order::class,
-            Element::EVENT_AFTER_SAVE,
+            Order::EVENT_AFTER_SAVE,
+            [OrderListener::class, 'upsert']
+        );
+
+        // On Order Checkout
+        Event::on(
+            Order::class,
+            Order::EVENT_AFTER_COMPLETE_ORDER,
             [OrderListener::class, 'upsert']
         );
 
         // On Order delete
         Event::on(
             Order::class,
-            Element::EVENT_AFTER_DELETE,
+            Order::EVENT_AFTER_DELETE,
             [OrderListener::class, 'delete']
         );
 
         // On save Customer
         Event::on(
             User::class,
-            Element::EVENT_AFTER_SAVE,
+            User::EVENT_AFTER_SAVE,
             [CustomerListener::class, 'upsert'],
         );
 

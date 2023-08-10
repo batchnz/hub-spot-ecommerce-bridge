@@ -12,6 +12,7 @@ use batchnz\hubspotecommercebridge\Plugin;
 use batchnz\hubspotecommercebridge\records\HubspotCommerceObject;
 use craft\base\Component;
 use craft\commerce\elements\Variant;
+use Exception;
 use HubSpot\Client\Crm\Products\ApiException;
 use HubSpot\Client\Crm\Products\Model\Filter;
 use HubSpot\Client\Crm\Products\Model\FilterGroup;
@@ -23,7 +24,7 @@ use Hubspot\Discovery\Discovery as HubSpotApi;
  * Class ProductService
  * @package batchnz\hubspotecommercebridge\services
  *
- * Handles all of the logic to do with importing Products from Craft Commerce to the HubSpot store
+ * Handles all the logic to do with importing Products from Craft Commerce to the HubSpot store
  */
 class ProductService extends Component implements HubspotServiceInterface
 {
@@ -44,8 +45,8 @@ class ProductService extends Component implements HubspotServiceInterface
         }
         try {
             $productSettings = ProductSettings::fromHubspotObject($productSchema);
-        } catch (\Exception $e) {
-            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.');
+        } catch (Exception $e) {
+            throw new ProcessingSettingsException('Failed to process the settings for PRODUCT.' . $e->getMessage());
         }
         $productSettings->validate();
         $this->settings = $productSettings;
@@ -87,6 +88,7 @@ class ProductService extends Component implements HubspotServiceInterface
      *
      * @param HubspotProduct $model
      * @return int|false
+     * @throws ApiException
      */
     public function findInHubspot($model): string|false
     {
@@ -102,37 +104,30 @@ class ProductService extends Component implements HubspotServiceInterface
             'filter_groups' => [$filterGroup],
         ]);
 
-        try {
-            $res = $this->hubspot->crm()->products()->searchApi()->doSearch($searchReq);
-            return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
-        } catch (ApiException $e) {
-            return false;
-        }
+        $res = $this->hubspot->crm()->products()->searchApi()->doSearch($searchReq);
+        return count($res->getResults()) ? $res->getResults()[0]->getId() : false;
     }
 
     /**
      * Creates a product in Hubspot. If the product already exists, then updates the existing product.
      * @param HubspotProduct $model
+     * @throws ApiException
      */
     public function upsertToHubspot($model): string|false
     {
         $properties = $this->mapProperties($model);
         $existingObjectId = $this->findInHubspot($model);
         $productInput = new SimplePublicObjectInput();
-        try {
-            if ($existingObjectId) {
-                // Don't upsert the unique key
-                unset($properties[$this->settings[$this->settings->uniqueKey()]]);
-                $productInput->setProperties($properties);
-                $res = $this->hubspot->crm()->products()->basicApi()->update($existingObjectId, $productInput);
-            } else {
-                $productInput->setProperties($properties);
-                $res = $this->hubspot->crm()->products()->basicApi()->create($productInput);
-            }
-            return $res->getId();
-        } catch (ApiException $e) {
-            return false;
+        if ($existingObjectId) {
+            // Don't upsert the unique key
+            unset($properties[$this->settings[$this->settings->uniqueKey()]]);
+            $productInput->setProperties($properties);
+            $res = $this->hubspot->crm()->products()->basicApi()->update($existingObjectId, $productInput);
+        } else {
+            $productInput->setProperties($properties);
+            $res = $this->hubspot->crm()->products()->basicApi()->create($productInput);
         }
+        return $res->getId();
     }
 
     /**
@@ -140,6 +135,7 @@ class ProductService extends Component implements HubspotServiceInterface
      *
      * @param HubspotProduct $model
      * @return int|false
+     * @throws ApiException
      */
     public function deleteFromHubspot($model): int|false
     {
@@ -147,11 +143,7 @@ class ProductService extends Component implements HubspotServiceInterface
         if (!$existingObjectId) {
             return false;
         }
-        try {
-            $this->hubspot->crm()->products()->basicApi()->archive($existingObjectId);
-            return $existingObjectId;
-        } catch (ApiException $e) {
-            return false;
-        }
+        $this->hubspot->crm()->products()->basicApi()->archive($existingObjectId);
+        return $existingObjectId;
     }
 }

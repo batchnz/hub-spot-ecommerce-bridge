@@ -15,6 +15,8 @@ use batchnz\hubspotecommercebridge\Plugin;
 
 use Craft;
 use craft\queue\BaseJob;
+use Exception;
+use RuntimeException;
 
 /**
  *
@@ -40,11 +42,11 @@ class UpsertContactJob extends BaseJob
             $hubspotCustomer = $customerService->fetch($this->customerId);
             $success = $customerService->upsertToHubspot($hubspotCustomer);
             if (!$success) {
-                throw new \RuntimeException();
+                throw new RuntimeException();
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             Craft::error($e->getMessage(), Plugin::HANDLE);
-            throw new \RuntimeException('Failed to Upsert Customer with ID: ' . $this->customerId . " to Hubspot: " . $e->getMessage());
+            throw new RuntimeException('Failed to Upsert Customer with ID: ' . $this->customerId . " to Hubspot: " . $e->getMessage());
         }
     }
 
