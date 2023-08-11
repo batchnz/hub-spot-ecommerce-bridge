@@ -12,11 +12,11 @@
 namespace batchnz\hubspotecommercebridge\jobs;
 
 use batchnz\hubspotecommercebridge\Plugin;
+use batchnz\hubspotecommercebridge\records\OrderLock;
 use Craft;
 use craft\commerce\elements\Order;
 use craft\queue\BaseJob;
 use Exception;
-use HubSpot\Client\Crm;
 use RuntimeException;
 
 /**
@@ -34,6 +34,7 @@ class UpsertDealJob extends BaseJob
 
     /**
      * When the Queue is ready to run your job, it will call this method.
+     * @throws Exception
      */
     public function execute($queue): void
     {
@@ -42,13 +43,25 @@ class UpsertDealJob extends BaseJob
         $orderService = Plugin::getInstance()->getOrder();
         $lineItemService = Plugin::getInstance()->getLineItem();
 
-        try {
-            $craftOrder = Order::findOne(['id' => $this->orderId]);
+        $craftOrder = Order::findOne(['id' => $this->orderId]);
 
-            if (!$craftOrder) {
-                Craft::error('Could not find Order with ID: ' . $this->orderId . ' in the database', Plugin::HANDLE);
-                throw new RuntimeException('Could not find Order with ID: ' . $this->orderId . ' in the database');
+        if (!$craftOrder) {
+            Craft::error('Could not find Order with ID: ' . $this->orderId . ' in the database', Plugin::HANDLE);
+            throw new RuntimeException('Could not find Order with ID: ' . $this->orderId . ' in the database');
+        }
+
+        $isAlreadyLocked = false;
+
+        try {
+            // Check if the order is already locked
+            $isAlreadyLocked = OrderLock::findOne(['orderId' => $this->orderId]);
+
+            if ($isAlreadyLocked) {
+                throw new RuntimeException('Order with ID: ' . $this->orderId . ' is locked and cannot be synced to Hubspot right now');
             }
+
+            // Lock the order to prevent it from being synced again
+            OrderLock::lockOrder($craftOrder);
 
             $customerId = $craftOrder->getCustomer()?->getId();
             $lineItems = $craftOrder->getLineItems();
@@ -90,6 +103,11 @@ class UpsertDealJob extends BaseJob
         } catch (Exception $e) {
             Craft::error($e->getMessage(), Plugin::HANDLE);
             throw new RuntimeException('Failed to Upsert Order with ID: ' . $this->orderId . " to Hubspot: " . $e->getMessage());
+        } finally {
+            // Unlock the order if it wasn't already locked
+            if (!$isAlreadyLocked) {
+                OrderLock::unlockOrder($craftOrder);
+            }
         }
     }
 

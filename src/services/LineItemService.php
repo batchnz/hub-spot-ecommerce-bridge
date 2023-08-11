@@ -95,17 +95,14 @@ class LineItemService extends Component implements HubspotServiceInterface
     /**
      * Creates a line item in Hubspot. If the line item already exists, then line item the existing deal.
      * @param HubspotLineItem $model
+     * @throws ApiException
      */
     public function upsertToHubspot($model): string|false
     {
         $properties = $this->mapProperties($model);
         $lineItemInput = new SimplePublicObjectInput();
         $lineItemInput->setProperties($properties);
-        try {
-            return $this->hubspot->crm()->lineItems()->basicApi()->create($lineItemInput)->getId();
-        } catch (ApiException $e) {
-            return false;
-        }
+        return $this->hubspot->crm()->lineItems()->basicApi()->create($lineItemInput)->getId();
     }
 
     /**
