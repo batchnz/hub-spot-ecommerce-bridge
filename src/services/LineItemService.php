@@ -58,7 +58,7 @@ class LineItemService extends Component implements HubspotServiceInterface
      */
     public function fetch(int $id): HubspotLineItem
     {
-        $lineItem = LineItem::find()->id($id)->status([])->one();
+        $lineItem = LineItem::findOne(['id' => $id]);
         if (!$lineItem) {
             throw new CraftCommerceObjectMissing('Could not fetch LineItem with ID: ' . $id);
         }

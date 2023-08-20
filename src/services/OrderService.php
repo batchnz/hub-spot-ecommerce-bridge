@@ -64,7 +64,7 @@ class OrderService extends Component implements HubspotServiceInterface
      */
     public function fetch(int $id): HubspotOrder
     {
-        $order = Order::find()->id($id)->status([])->one();
+        $order = Order::findOne(['id' => $id]);
         if (!$order) {
             throw new CraftCommerceObjectMissing('Could not fetch Order with ID: ' . $id);
         }
