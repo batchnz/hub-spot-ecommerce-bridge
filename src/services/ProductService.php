@@ -61,7 +61,7 @@ class ProductService extends Component implements HubspotServiceInterface
      */
     public function fetch(int $id): HubspotProduct
     {
-        $variant = Variant::findOne(['id' => $id]);
+        $variant = Variant::find()->id($id)->status([])->one();
         if (!$variant) {
             throw new CraftCommerceObjectMissing('Could not fetch Variant with ID: ' . $id);
         }

@@ -62,7 +62,7 @@ class CustomerService extends Component implements HubspotServiceInterface
      */
     public function fetch(int $id): HubspotCustomer
     {
-        $user = User::findOne(['id' => $id]);
+        $user = User::find()->id($id)->status([])->one();
         if (!$user) {
             throw new CraftCommerceObjectMissing('Could not fetch Variant with ID: ' . $id);
         }
