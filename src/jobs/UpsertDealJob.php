@@ -60,8 +60,6 @@ class UpsertDealJob extends BaseJob
             ->from('{{%queue}}') // 'queue' is the table name, '%' will be replaced by the table prefix
             ->where(['description' => $this->defaultDescription()]);
 
-        throw new Exception($query->count() . ' ' . $this->defaultDescription() . ' jobs are in the queue');
-
         if ($query->count() >= 2) {
             return;
         }
@@ -141,6 +139,6 @@ class UpsertDealJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('hub-spot-ecommerce-bridge', 'Upsert Craft Commerce Deal to HubSpot: ' . $this->orderId);
+        return Craft::t('hub-spot-ecommerce-bridge', 'Upsert Craft Commerce Deal to HubSpot');
     }
 }
