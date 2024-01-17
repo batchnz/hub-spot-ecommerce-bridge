@@ -77,10 +77,15 @@ class UpsertDealJob extends BaseJob
             }
 
             if ($customerId) {
-                $hubspotCustomerModel = $customerService->fetch($customerId);
-                $hubspotContactId = $customerService->upsertToHubspot($hubspotCustomerModel);
-                if ($hubspotContactId) {
-                    $customerService->associateToDeal($hubspotContactId, $hubspotDealId);
+                try {
+                    $hubspotCustomerModel = $customerService->fetch($customerId);
+                    $hubspotContactId = $customerService->upsertToHubspot($hubspotCustomerModel);
+                    if ($hubspotContactId) {
+                        $customerService->associateToDeal($hubspotContactId, $hubspotDealId);
+                    }
+                } catch (Exception $e) {
+                    Craft::error('Error upserting customer: ' . $e->getMessage(), Plugin::HANDLE);
+                    return;
                 }
             }
 
