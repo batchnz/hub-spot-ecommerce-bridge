@@ -47,7 +47,9 @@ class UpsertDealJob extends BaseJob
 
         if (!$craftOrder) {
             Craft::error('Could not find Order with ID: ' . $this->orderId . ' in the database', Plugin::HANDLE);
-            throw new RuntimeException('Could not find Order with ID: ' . $this->orderId . ' in the database');
+
+            // Don,t throw an error, just discard the job to avoid infinite looping
+            return;
         }
 
         $isAlreadyLocked = false;

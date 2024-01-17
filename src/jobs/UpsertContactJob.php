@@ -46,7 +46,7 @@ class UpsertContactJob extends BaseJob
             }
         } catch (Exception $e) {
             Craft::error($e->getMessage(), Plugin::HANDLE);
-            throw new RuntimeException('Failed to Upsert Customer with ID: ' . $this->customerId . " to Hubspot: " . $e->getMessage());
+            Craft::error('Failed to Upsert Customer with ID: ' . $this->customerId . " to Hubspot: " . $e->getMessage(), Plugin::HANDLE);
         }
     }
 
