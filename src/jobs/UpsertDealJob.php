@@ -18,6 +18,7 @@ use craft\commerce\elements\Order;
 use craft\queue\BaseJob;
 use Exception;
 use RuntimeException;
+use craft\db\Query;
 
 /**
  *
@@ -49,6 +50,17 @@ class UpsertDealJob extends BaseJob
             Craft::error('Could not find Order with ID: ' . $this->orderId . ' in the database', Plugin::HANDLE);
 
             // Don,t throw an error, just discard the job to avoid infinite looping
+            return;
+        }
+
+        // Create a query to check if this order is in the queue already
+        // There may be up to 2 in the queue, 1 that is currently running and one that is locked to be executed after the first one is done
+        $query = (new Query())
+            ->select(['id'])
+            ->from('{{%queue}}') // 'queue' is the table name, '%' will be replaced by the table prefix
+            ->where(['description' => $this->defaultDescription()]);
+
+        if ($query->count() >= 2) {
             return;
         }
 
@@ -127,6 +139,6 @@ class UpsertDealJob extends BaseJob
      */
     protected function defaultDescription(): string
     {
-        return Craft::t('hub-spot-ecommerce-bridge', 'Upsert Craft Commerce Deal to HubSpot');
+        return Craft::t('hub-spot-ecommerce-bridge', 'Upsert Craft Commerce Deal to HubSpot: ' . $this->orderId);
     }
 }
