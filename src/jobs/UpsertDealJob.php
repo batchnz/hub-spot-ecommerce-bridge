@@ -60,6 +60,8 @@ class UpsertDealJob extends BaseJob
             ->from('{{%queue}}') // 'queue' is the table name, '%' will be replaced by the table prefix
             ->where(['description' => $this->defaultDescription()]);
 
+        throw new Exception($query->count() . ' ' . $this->defaultDescription() . ' jobs are in the queue');
+
         if ($query->count() >= 2) {
             return;
         }
